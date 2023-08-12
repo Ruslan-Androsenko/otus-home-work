@@ -26,7 +26,13 @@ func TestUnpack(t *testing.T) {
 		// additional tests
 		{input: "d\n5abc", expected: "d\n\n\n\n\nabc"},
 		{input: "\n3abc", expected: "\n\n\nabc"},
+		{input: `\\`, expected: `\`},
 		{input: `qwe\45tmp-4ok`, expected: `qwe44444tmp----ok`},
+
+		// Unicode symbols
+		{input: `PIπ3`, expected: `PIπππ`},
+		{input: `ship⇔5`, expected: `ship⇔⇔⇔⇔⇔`},
+		{input: `suite♠7`, expected: `suite♠♠♠♠♠♠♠`},
 	}
 
 	for _, tc := range tests {
@@ -44,6 +50,8 @@ func TestUnpackInvalidString(t *testing.T) {
 		"3abc", "45", "aaa10b",
 
 		// additional tests
+		`\`,
+		`qw\`,
 		`qw\ne`,
 		"qwe\n4aaa10b",
 	}

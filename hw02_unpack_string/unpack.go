@@ -17,12 +17,12 @@ func Unpack(inputString string) (string, error) {
 	inputRunes := []rune(inputString)
 	builder := strings.Builder{}
 
+	if len(inputRunes) > 0 && unicode.IsDigit(inputRunes[0]) {
+		return "", ErrInvalidString
+	}
+
 	for index, item := range inputRunes {
 		var prevRune, nextRune rune
-
-		if index == 0 && unicode.IsDigit(item) {
-			return "", ErrInvalidString
-		}
 
 		if index > 0 {
 			prevRune = inputRunes[index-1]
@@ -36,7 +36,7 @@ func Unpack(inputString string) (string, error) {
 			return "", ErrInvalidString
 		}
 
-		if prevRune == backSlash && item != backSlash && !unicode.IsDigit(item) {
+		if hasEscapedNotNumber(prevRune, item) || hasIncorrectEscaping(prevRune, item, nextRune) {
 			return "", ErrInvalidString
 		}
 
@@ -66,6 +66,16 @@ func Unpack(inputString string) (string, error) {
 	}
 
 	return builder.String(), nil
+}
+
+// Экранировано не число.
+func hasEscapedNotNumber(prevRune, item rune) bool {
+	return prevRune == backSlash && item != backSlash && !unicode.IsDigit(item)
+}
+
+// Неверное экранирование, т.к. обратный слэш находится в конце строки.
+func hasIncorrectEscaping(prevRune, item, nextRune rune) bool {
+	return prevRune != backSlash && item == backSlash && nextRune == 0
 }
 
 // Необходимо ли установит флаг экраннированного символа.
