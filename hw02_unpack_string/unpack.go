@@ -11,9 +11,8 @@ const backSlash rune = '\\'
 
 var ErrInvalidString = errors.New("invalid string")
 
-var hasPrevRuneShielded, hasPrevBackSlashWritten bool
-
 func Unpack(inputString string) (string, error) {
+	var hasPrevRuneShielded, hasPrevBackSlashWritten bool
 	inputRunes := []rune(inputString)
 	builder := strings.Builder{}
 
@@ -40,22 +39,30 @@ func Unpack(inputString string) (string, error) {
 			return "", ErrInvalidString
 		}
 
+		hasWriteBackSlashCharacter := hasWriteBackSlash(prevRune, item, nextRune)
+
 		switch {
-		case hasWriteBackSlash(prevRune, item, nextRune):
+		// Необходимо записать обратный слеш и установить флаг записи.
+		case hasWriteBackSlashCharacter && !hasPrevBackSlashWritten:
 			builder.WriteString(string(item))
 			hasPrevBackSlashWritten = true
 
-		case hasSetShieldedFlag(prevRune, item):
+		// На предыдущей итерации обратный слеш был записан, необходимо снять этот флаг записи.
+		case hasWriteBackSlashCharacter && hasPrevBackSlashWritten:
+			hasPrevBackSlashWritten = false
+
+		case hasSetShieldedFlag(prevRune, item) && !hasPrevBackSlashWritten:
 			hasPrevRuneShielded = true
 
-		case hasWriteShieldedNumber(prevRune, item):
+		case hasWriteShieldedNumber(prevRune, item) && !hasPrevRuneShielded:
 			if !unicode.IsDigit(nextRune) {
 				builder.WriteString(string(item))
 			} else {
 				hasPrevRuneShielded = true
 			}
 
-		case hasWriteRepeatedCharacter(item):
+		// Необходимо ли записать символ с указанным повторением.
+		case unicode.IsDigit(item) || hasPrevRuneShielded:
 			countSymbols, _ := strconv.Atoi(string(item))
 			builder.WriteString(strings.Repeat(string(prevRune), countSymbols))
 			hasPrevRuneShielded = false
@@ -80,22 +87,17 @@ func hasIncorrectEscaping(prevRune, item, nextRune rune) bool {
 
 // Необходимо ли установит флаг экраннированного символа.
 func hasSetShieldedFlag(prevRune, item rune) bool {
-	return prevRune == backSlash && item == backSlash && !hasPrevBackSlashWritten
+	return prevRune == backSlash && item == backSlash
 }
 
 // Необходимо ли записать обратный слэш.
 func hasWriteBackSlash(prevRune, item, nextRune rune) bool {
-	return prevRune == backSlash && item == backSlash && nextRune == backSlash
+	return prevRune == backSlash && item == backSlash && (nextRune == backSlash || nextRune == 0)
 }
 
 // Необходимо ли записать экранированное число.
 func hasWriteShieldedNumber(prevRune, item rune) bool {
-	return prevRune == backSlash && unicode.IsDigit(item) && !hasPrevRuneShielded
-}
-
-// Необходимо ли записать символ с указанным повторением.
-func hasWriteRepeatedCharacter(item rune) bool {
-	return unicode.IsDigit(item) || hasPrevRuneShielded
+	return prevRune == backSlash && unicode.IsDigit(item)
 }
 
 // Необходимо ли записать обычный символ.

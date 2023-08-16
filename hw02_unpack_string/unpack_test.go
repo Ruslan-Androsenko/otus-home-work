@@ -27,6 +27,7 @@ func TestUnpack(t *testing.T) {
 		{input: "d\n5abc", expected: "d\n\n\n\n\nabc"},
 		{input: "\n3abc", expected: "\n\n\nabc"},
 		{input: `\\`, expected: `\`},
+		{input: `qwe\\\\`, expected: `qwe\\`},
 		{input: `qwe\45tmp-4ok`, expected: `qwe44444tmp----ok`},
 
 		// Unicode symbols
