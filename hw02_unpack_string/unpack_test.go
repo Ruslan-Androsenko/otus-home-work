@@ -54,6 +54,7 @@ func TestUnpackInvalidString(t *testing.T) {
 		`\`,
 		`qw\`,
 		`qw\ne`,
+		`qwe\\\`,
 		"qwe\n4aaa10b",
 	}
 

@@ -39,6 +39,10 @@ func Unpack(inputString string) (string, error) {
 			return "", ErrInvalidString
 		}
 
+		if hasBackSlashAtEndOfLine(item, nextRune) && hasPrevBackSlashWritten {
+			return "", ErrInvalidString
+		}
+
 		hasWriteBackSlashCharacter := hasWriteBackSlash(prevRune, item, nextRune)
 
 		switch {
@@ -82,7 +86,12 @@ func hasEscapedNotNumber(prevRune, item rune) bool {
 
 // Неверное экранирование, т.к. обратный слэш находится в конце строки.
 func hasIncorrectEscaping(prevRune, item, nextRune rune) bool {
-	return prevRune != backSlash && item == backSlash && nextRune == 0
+	return prevRune != backSlash && hasBackSlashAtEndOfLine(item, nextRune)
+}
+
+// Обратный слэш находится в конце строки.
+func hasBackSlashAtEndOfLine(item, nextRune rune) bool {
+	return item == backSlash && nextRune == 0
 }
 
 // Необходимо ли установит флаг экраннированного символа.
