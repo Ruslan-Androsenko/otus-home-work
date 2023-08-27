@@ -33,12 +33,26 @@ func Top15(inputString string) []string {
 func getHighFrequencyWords(inputString string, count int) []string {
 	words := strings.Fields(inputString)
 	frequencies := make(map[string]int)
+	analysisItems := make([]FrequencyAnalysis, 0, len(frequencies))
 
 	for _, word := range words {
 		frequencies[word]++
 	}
 
-	analysisItems := sortMapByFrequency(frequencies)
+	// Получаем данные из словаря в слайс, для дальнейшей обработки
+	for word, counter := range frequencies {
+		item := FrequencyAnalysis{
+			word:  word,
+			count: counter,
+		}
+		analysisItems = append(analysisItems, item)
+	}
+
+	// Сортируем по частоте вхождения слов и если частота одинаковая, то по алфавиту
+	sort.Slice(analysisItems, func(i, j int) bool {
+		return analysisItems[i].count > analysisItems[j].count ||
+			(analysisItems[i].count == analysisItems[j].count && analysisItems[i].word < analysisItems[j].word)
+	})
 
 	return getWords(analysisItems, count)
 }
@@ -56,25 +70,4 @@ func getWords(analysisItems []FrequencyAnalysis, count int) []string {
 	}
 
 	return words
-}
-
-// Сортировка словаря по количеству вхождений слов.
-func sortMapByFrequency(frequencies map[string]int) []FrequencyAnalysis {
-	analysisItems := make([]FrequencyAnalysis, 0, len(frequencies))
-
-	for word, counter := range frequencies {
-		item := FrequencyAnalysis{
-			word:  word,
-			count: counter,
-		}
-		analysisItems = append(analysisItems, item)
-	}
-
-	// Сортируем по частоте вхождения слов и если частота одинаковая, то по алфавиту
-	sort.Slice(analysisItems, func(i, j int) bool {
-		return analysisItems[i].count > analysisItems[j].count ||
-			(analysisItems[i].count == analysisItems[j].count && analysisItems[i].word < analysisItems[j].word)
-	})
-
-	return analysisItems
 }
