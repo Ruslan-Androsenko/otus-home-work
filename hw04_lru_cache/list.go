@@ -95,32 +95,38 @@ func (elem *list) PushBack(v interface{}) *ListItem {
 
 // Remove Удалить текущий элемент из списка.
 func (elem *list) Remove(item *ListItem) {
-	item.connectNeighbors(elem)
-	elem.counter--
+	if item.hasExistsInList() {
+		item.connectNeighbors(elem)
+		elem.counter--
+	}
 }
 
 // MoveToFront Переместить текущий элемент в начало списка.
 func (elem *list) MoveToFront(item *ListItem) {
-	item.connectNeighbors(elem)
+	if item.hasExistsInList() {
+		item.connectNeighbors(elem)
 
-	if elem.head != nil {
-		elem.head.Prev = item
+		if elem.head != nil {
+			elem.head.Prev = item
+		}
+
+		item.Next = elem.head
+		elem.head = item
 	}
-
-	item.Next = elem.head
-	elem.head = item
 }
 
 // MoveToBack Переместить текущий элемент в конец списка.
 func (elem *list) MoveToBack(item *ListItem) {
-	item.connectNeighbors(elem)
+	if item.hasExistsInList() {
+		item.connectNeighbors(elem)
 
-	if elem.tail != nil {
-		elem.tail.Next = item
+		if elem.tail != nil {
+			elem.tail.Next = item
+		}
+
+		item.Prev = elem.tail
+		elem.tail = item
 	}
-
-	item.Prev = elem.tail
-	elem.tail = item
 }
 
 // Связать между собой соседние элементы.
@@ -130,7 +136,7 @@ func (item *ListItem) connectNeighbors(elem *list) {
 	if item.Prev != nil {
 		item.Prev.Next = item.Next
 
-		// Если это послений элемент, то заменяем адрес хвоста предыдущим элементом
+		// Если это последний элемент, то заменяем адрес хвоста предыдущим элементом
 		if elem.tail == item {
 			elem.tail = item.Prev
 		}
@@ -150,4 +156,9 @@ func (item *ListItem) connectNeighbors(elem *list) {
 	// Обрываем связи у текущего элемента
 	item.Prev = nil
 	item.Next = nil
+}
+
+// Находится ли текущий элемент в списке.
+func (item *ListItem) hasExistsInList() bool {
+	return item.Prev != nil || item.Next != nil
 }
