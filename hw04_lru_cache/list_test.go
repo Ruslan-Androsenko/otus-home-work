@@ -1,6 +1,7 @@
 package hw04lrucache
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -66,5 +67,70 @@ func TestList(t *testing.T) {
 		require.Equal(t, 6, l.Len())
 		require.Equal(t, 80, l.Front().Value)
 		require.Equal(t, 70, l.Back().Value)
+	})
+
+	t.Run("additional", func(t *testing.T) {
+		l := NewList()
+
+		l.PushFront("one")  // ["one"]
+		l.PushBack("two")   // ["one", "two"]
+		l.PushBack("three") // ["one", "two", "three"]
+		require.Equal(t, 3, l.Len())
+
+		newItems := []string{
+			"twenty", "twenty-two", "thirty", "thirty-three", "forty", "forty-four",
+			"fifty", "fifty-five", "sixty", "sixty-six", "seventy", "seventy-seven",
+		}
+
+		for _, val := range newItems {
+			if strings.Contains(val, "-") {
+				l.PushBack(val)
+			} else {
+				l.PushFront(val)
+			}
+		}
+		// ["seventy", "sixty", "fifty", "forty", "thirty", "twenty",
+		//  "one", "two", "three",
+		//  "twenty-two", "thirty-three", "forty-four", "fifty-five", "sixty-six", "seventy-seven"]
+
+		require.Equal(t, 15, l.Len())
+		require.Equal(t, "seventy", l.Front().Value)
+		require.Equal(t, "seventy-seven", l.Back().Value)
+
+		l.Remove(l.Front())
+		l.Remove(l.Back())
+		// ["sixty", "fifty", "forty", "thirty", "twenty",
+		//  "one", "two", "three",
+		//  "twenty-two", "thirty-three", "forty-four", "fifty-five", "sixty-six"]
+
+		require.Equal(t, 13, l.Len())
+		require.Equal(t, "sixty", l.Front().Value)
+		require.Equal(t, "sixty-six", l.Back().Value)
+
+		preLast := l.Back().Prev // "fifty-five"
+		require.Equal(t, "fifty-five", preLast.Value)
+		require.Equal(t, "forty-four", preLast.Prev.Value)
+
+		l.MoveToBack(preLast.Prev)
+		l.MoveToFront(preLast.Prev)
+
+		// ["thirty-three", "sixty", "fifty", "forty", "thirty", "twenty",
+		//  "one", "two", "three",
+		//  "twenty-two", "fifty-five", "sixty-six", "forty-four"]
+
+		require.Equal(t, 13, l.Len())
+		require.Equal(t, "thirty-three", l.Front().Value)
+		require.Equal(t, "forty-four", l.Back().Value)
+
+		l.PushFront(256)
+		l.PushBack(512)
+
+		// [256, "thirty-three", "sixty", "fifty", "forty", "thirty", "twenty",
+		//  "one", "two", "three",
+		//  "twenty-two", "fifty-five", "sixty-six", "forty-four", 512]
+
+		require.Equal(t, 15, l.Len())
+		require.Equal(t, 256, l.Front().Value)
+		require.Equal(t, 512, l.Back().Value)
 	})
 }
