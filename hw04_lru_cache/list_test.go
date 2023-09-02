@@ -19,6 +19,29 @@ func TestList(t *testing.T) {
 	t.Run("complex", func(t *testing.T) {
 		l := NewList()
 
+		l.PushFront(128) // [128]
+
+		// Проверяем что элемент единственный в списке
+		require.Equal(t, 1, l.Len())
+		require.Equal(t, 128, l.Front().Value)
+		require.Equal(t, 128, l.Back().Value)
+
+		// Удаляем единственный элемент в списке
+		l.Remove(l.Front())
+
+		// Проверяем что список пуст
+		require.Equal(t, 0, l.Len())
+		require.Nil(t, l.Front())
+		require.Nil(t, l.Back())
+
+		// Пытаемся удалить элемент в пустом списке
+		l.Remove(l.Back())
+
+		// Проверяем что список по прежнему пуст, и его размер не отрицательный
+		require.Equal(t, 0, l.Len())
+		require.Nil(t, l.Front())
+		require.Nil(t, l.Back())
+
 		l.PushFront(10) // [10]
 		l.PushBack(20)  // [10, 20]
 		l.PushBack(30)  // [10, 20, 30]
@@ -55,18 +78,9 @@ func TestList(t *testing.T) {
 		l.Remove(preLast.Prev) // [70, 80, 60, 40, 30, 50]
 
 		require.Equal(t, 40, preLast.Prev.Value)
-		l.MoveToBack(preLast.Prev) // [70, 80, 60, 30, 50, 40]
-
 		require.Equal(t, 6, l.Len())
 		require.Equal(t, 70, l.Front().Value)
-		require.Equal(t, 40, l.Back().Value)
-
-		l.MoveToBack(l.Back())
-		l.MoveToBack(l.Front()) // [80, 60, 30, 50, 40, 70]
-
-		require.Equal(t, 6, l.Len())
-		require.Equal(t, 80, l.Front().Value)
-		require.Equal(t, 70, l.Back().Value)
+		require.Equal(t, 50, l.Back().Value)
 	})
 
 	t.Run("additional", func(t *testing.T) {
@@ -111,23 +125,21 @@ func TestList(t *testing.T) {
 		require.Equal(t, "fifty-five", preLast.Value)
 		require.Equal(t, "forty-four", preLast.Prev.Value)
 
-		l.MoveToBack(preLast.Prev)
 		l.MoveToFront(preLast.Prev)
-
-		// ["thirty-three", "sixty", "fifty", "forty", "thirty", "twenty",
+		// ["forty-four", "sixty", "fifty", "forty", "thirty", "twenty",
 		//  "one", "two", "three",
-		//  "twenty-two", "fifty-five", "sixty-six", "forty-four"]
+		//  "twenty-two", "thirty-three", "fifty-five", "sixty-six"]
 
 		require.Equal(t, 13, l.Len())
-		require.Equal(t, "thirty-three", l.Front().Value)
-		require.Equal(t, "forty-four", l.Back().Value)
+		require.Equal(t, "forty-four", l.Front().Value)
+		require.Equal(t, "sixty-six", l.Back().Value)
 
 		l.PushFront(256)
 		l.PushBack(512)
 
-		// [256, "thirty-three", "sixty", "fifty", "forty", "thirty", "twenty",
+		// [256, "forty-four", "sixty", "fifty", "forty", "thirty", "twenty",
 		//  "one", "two", "three",
-		//  "twenty-two", "fifty-five", "sixty-six", "forty-four", 512]
+		//  "twenty-two", "thirty-three", "fifty-five", "sixty-six", 512]
 
 		require.Equal(t, 15, l.Len())
 		require.Equal(t, 256, l.Front().Value)
