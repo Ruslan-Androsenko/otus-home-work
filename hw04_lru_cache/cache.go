@@ -1,5 +1,7 @@
 package hw04lrucache
 
+import "sync"
+
 type Key string
 
 type Cache interface {
@@ -9,6 +11,7 @@ type Cache interface {
 }
 
 type lruCache struct {
+	mutex    *sync.Mutex
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
@@ -22,6 +25,7 @@ type Node struct {
 // NewCache Создать новый кэш.
 func NewCache(capacity int) Cache {
 	return &lruCache{
+		mutex:    &sync.Mutex{},
 		capacity: capacity,
 		queue:    NewList(),
 		items:    make(map[Key]*ListItem, capacity),
@@ -30,6 +34,9 @@ func NewCache(capacity int) Cache {
 
 // Set Добавить элемент в кэш по указанному ключу.
 func (elem *lruCache) Set(key Key, value interface{}) bool {
+	elem.mutex.Lock()
+	defer elem.mutex.Unlock()
+
 	if item, ok := elem.items[key]; !ok {
 		elem.items[key] = elem.queue.PushFront(&Node{
 			Key:   key,
@@ -56,6 +63,9 @@ func (elem *lruCache) Set(key Key, value interface{}) bool {
 
 // Get Получить элемент из кэша по указанному ключу.
 func (elem *lruCache) Get(key Key) (interface{}, bool) {
+	elem.mutex.Lock()
+	defer elem.mutex.Unlock()
+
 	if item, ok := elem.items[key]; ok {
 		elem.queue.MoveToFront(item)
 
@@ -69,6 +79,9 @@ func (elem *lruCache) Get(key Key) (interface{}, bool) {
 
 // Clear Очистить кэш.
 func (elem *lruCache) Clear() {
+	elem.mutex.Lock()
+	defer elem.mutex.Unlock()
+
 	elem.queue = NewList()
 	elem.items = make(map[Key]*ListItem, elem.capacity)
 }
