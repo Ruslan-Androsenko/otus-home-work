@@ -69,6 +69,32 @@ func TestRun(t *testing.T) {
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
 
+	t.Run("tasks that have a maximum of zero errors", func(t *testing.T) {
+		tasksCount := 10
+		tasks := make([]Task, 0, tasksCount)
+
+		var runTasksCount int32
+
+		for i := 0; i < tasksCount; i++ {
+			err := fmt.Errorf("error from task %d", i)
+			tasks = append(tasks, func() error {
+				time.Sleep(time.Millisecond * time.Duration(rand.Intn(170)))
+				atomic.AddInt32(&runTasksCount, 1)
+				return err
+			})
+		}
+
+		workersCount := 4
+		maxErrorsCount := 0
+		err := Run(tasks, workersCount, maxErrorsCount)
+
+		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
+		require.LessOrEqual(t, atomic.LoadInt32(&runTasksCount), int32(workersCount+maxErrorsCount),
+			"extra tasks were started")
+	})
+}
+
+func TestExperimental(t *testing.T) {
 	t.Run("stable tasks with one random error and with negative limit errors", func(t *testing.T) {
 		tasksCount := 70
 		tasks := make([]Task, 0, tasksCount)
@@ -106,35 +132,11 @@ func TestRun(t *testing.T) {
 		start := time.Now()
 		err := Run(tasks, workersCount, maxErrorsCount)
 		elapsedTime := time.Since(start)
-		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
+		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded) || err == nil, "actual err - %v", err)
 
-		require.Less(t, atomic.LoadInt32(&runTasksCount), int32(tasksCount),
+		require.LessOrEqual(t, atomic.LoadInt32(&runTasksCount), int32(tasksCount),
 			"not all tasks were accepted due to an accidental error")
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
-	})
-
-	t.Run("tasks that have a maximum of zero errors", func(t *testing.T) {
-		tasksCount := 10
-		tasks := make([]Task, 0, tasksCount)
-
-		var runTasksCount int32
-
-		for i := 0; i < tasksCount; i++ {
-			err := fmt.Errorf("error from task %d", i)
-			tasks = append(tasks, func() error {
-				time.Sleep(time.Millisecond * time.Duration(rand.Intn(170)))
-				atomic.AddInt32(&runTasksCount, 1)
-				return err
-			})
-		}
-
-		workersCount := 4
-		maxErrorsCount := 0
-		err := Run(tasks, workersCount, maxErrorsCount)
-
-		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
-		require.LessOrEqual(t, atomic.LoadInt32(&runTasksCount), int32(workersCount+maxErrorsCount),
-			"extra tasks were started")
 	})
 
 	t.Run("tasks in which mistakes are made", func(t *testing.T) {

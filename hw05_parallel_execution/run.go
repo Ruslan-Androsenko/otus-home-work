@@ -2,6 +2,7 @@ package hw05parallelexecution
 
 import (
 	"errors"
+	"sync"
 	"sync/atomic"
 )
 
@@ -10,70 +11,66 @@ var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 type Task func() error
 
 type CheckError struct {
-	DoneCh       chan struct{}
-	ErrorsCh     chan error
-	TasksCh      chan Task
-	HasErrClosed uint32
+	DoneCh           chan struct{}
+	TasksCh          chan Task
+	wg               sync.WaitGroup
+	ErrorsCounter    int32
+	ProcessedCounter int32
 }
 
 // Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n, m int) error {
 	var (
-		errorsCount, processedCount int
-		tasksCount                  = len(tasks)
-		checker                     CheckError
+		checker    CheckError
+		maxErrors  = int32(m)
+		tasksCount = int32(len(tasks))
 	)
 
-	// Создаем каналы для отправки задач на обработку и получения из них результатов
+	// Создаем каналы для отправки задач на обработку, и сигнальный для завершения работы горутин
 	checker.DoneCh = make(chan struct{})
-	checker.ErrorsCh = make(chan error, n)
 	checker.TasksCh = make(chan Task, n)
-
-	// Закрываем канал с ошибками при выходе из основной функции
-	defer close(checker.ErrorsCh)
 
 	// Создаем пулл исполнителей которые будут обрабатывать задачи
 	for w := 0; w < n; w++ {
+		checker.wg.Add(1)
 		go worker(&checker)
 	}
 
-	// Запускаем обработку задач
-	go executing(tasks, &checker)
-
-	if m <= 0 {
-		m = 1
+	if maxErrors <= 0 {
+		maxErrors = 1
 	}
 
-	// Проверяем количество полученных ошибок
-	for err := range checker.ErrorsCh {
-		processedCount++
-
-		if err != nil {
-			errorsCount++
-		}
-
-		// Проверяем на лимит по ошибкам
-		if errorsCount >= m {
+	// Запускаем обработку задач
+	for _, task := range tasks {
+		// Проверяем количество полученных ошибок
+		if atomic.LoadInt32(&checker.ErrorsCounter) >= maxErrors {
 			close(checker.DoneCh)
-			atomic.AddUint32(&checker.HasErrClosed, 1)
+			close(checker.TasksCh)
 
 			return ErrErrorsLimitExceeded
 		}
 
-		// Защищаемся от вечного цикла
-		if processedCount >= tasksCount {
-			close(checker.DoneCh)
-			atomic.AddUint32(&checker.HasErrClosed, 1)
+		checker.TasksCh <- task
+	}
+	close(checker.TasksCh)
 
+	for {
+		// Проверяем что уже все задачи завершили свою работу
+		if atomic.LoadInt32(&checker.ProcessedCounter) >= tasksCount {
+			close(checker.DoneCh)
 			break
 		}
 	}
+
+	checker.wg.Wait()
 
 	return nil
 }
 
 // Обработка полученных задач.
 func worker(checker *CheckError) {
+	defer checker.wg.Done()
+
 	for {
 		select {
 		case <-checker.DoneCh:
@@ -81,25 +78,14 @@ func worker(checker *CheckError) {
 		case task, ok := <-checker.TasksCh:
 			if ok {
 				err := task()
-
-				// Если канал с ошибками еще не закрыт, то добавляем в него результат выполнения задачи
-				if atomic.LoadUint32(&checker.HasErrClosed) == 0 {
-					checker.ErrorsCh <- err
+				if err != nil {
+					// Увеличиваем счетчик полученных ошибок
+					atomic.AddInt32(&checker.ErrorsCounter, 1)
 				}
+
+				// Увеличиваем счетчик выполненных задач
+				atomic.AddInt32(&checker.ProcessedCounter, 1)
 			}
-		}
-	}
-}
-
-// Добавление задач в обработку.
-func executing(tasks []Task, checker *CheckError) {
-	defer close(checker.TasksCh)
-
-	for _, task := range tasks {
-		select {
-		case <-checker.DoneCh:
-			return
-		case checker.TasksCh <- task:
 		}
 	}
 }
