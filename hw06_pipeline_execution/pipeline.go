@@ -24,19 +24,28 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 	for _, stage := range stages {
 		// Если done-канал не был передан, то не прослушиваем его
 		if done != nil {
-			for {
-				select {
-				case <-done:
-					return emptyOut
-				default:
-					out = stage(out)
-					break
-				}
-			}
+			resOut := make(Bi)
+			go process(out, done, resOut)
+			out = stage(resOut)
 		} else {
 			out = stage(out)
 		}
 	}
 
 	return out
+}
+
+// Пересылка полученного результата на следующий этап.
+func process(out Out, done In, resOut Bi) {
+	defer close(resOut)
+
+	for {
+		select {
+		case <-done:
+			return
+
+		case res := <-out:
+			resOut <- res
+		}
+	}
 }
