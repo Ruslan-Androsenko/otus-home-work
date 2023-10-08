@@ -45,7 +45,12 @@ func process(out Out, done In, resOut Bi) {
 			return
 
 		case res := <-out:
-			resOut <- res
+			select {
+			case <-done:
+				return
+
+			case resOut <- res:
+			}
 		}
 	}
 }
