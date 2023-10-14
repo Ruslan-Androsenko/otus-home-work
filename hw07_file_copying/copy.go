@@ -6,6 +6,9 @@ import (
 	"io"
 	"math"
 	"os"
+	"time"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -58,6 +61,18 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	buffer := make([]byte, bufferSize)
 	clearBuffer := make([]byte, bufferSize)
 
+	// Настраиваем прогресс бар
+	progressCounts := int(inputFileSize - offset)
+
+	if limit > 0 && limit < (inputFileSize-offset) {
+		progressCounts = int(limit)
+	}
+
+	bar := pb.StartNew(progressCounts)
+	bar.Set(pb.Bytes, true)
+	delay := getDelay(progressCounts, bufferSize)
+	defer bar.Finish()
+
 	for offset < inputFileSize {
 		read, errRead := input.ReadAt(buffer, offset)
 		if errRead != nil && errRead != io.EOF {
@@ -80,11 +95,15 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 			hasEndWrite = true
 		}
 
-		_, errWrite := output.WriteAt(buffer, writeOffset)
+		written, errWrite := output.WriteAt(buffer, writeOffset)
 		if errWrite != nil {
 			errMessage := fmt.Sprintf("error writing to output file, error: %v", errWrite)
 			return errors.New(errMessage)
 		}
+
+		// Добавляем количество записанных байт в прогрессбар
+		bar.Add(written)
+		time.Sleep(time.Millisecond * time.Duration(delay))
 
 		// Очищаем буфер с данными
 		copy(buffer, clearBuffer)
@@ -111,4 +130,22 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 
 	return nil
+}
+
+// Получить количество милисекунд для имитации задержки
+func getDelay(progressCounts, bufferSize int) int {
+	delay := progressCounts / bufferSize
+
+	switch {
+	case progressCounts < 500:
+		delay = progressCounts * 10
+	case progressCounts <= 1000:
+		delay = progressCounts / 2
+	case progressCounts <= 2000:
+		delay = progressCounts / 4
+	default:
+		delay *= 50
+	}
+
+	return delay
 }
