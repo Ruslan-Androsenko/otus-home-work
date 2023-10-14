@@ -42,7 +42,17 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return ErrUnsupportedFile
 	}
 
-	if offset > inputFileSize {
+	var (
+		hasEndWrite                 bool
+		writeOffset, negativeOffset int64
+	)
+
+	if offset < 0 {
+		negativeOffset = offset * (-1)
+		offset = inputFileSize - negativeOffset
+	}
+
+	if offset > inputFileSize || negativeOffset > inputFileSize {
 		return ErrOffsetExceedsFileSize
 	}
 
@@ -51,11 +61,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		errMessage := fmt.Sprintf("failed write to output file, error: %v", errOutput)
 		return errors.New(errMessage)
 	}
-
-	var (
-		hasEndWrite bool
-		writeOffset int64
-	)
 
 	bufferSize := 1024
 	buffer := make([]byte, bufferSize)
@@ -137,7 +142,7 @@ func getDelay(progressCounts, bufferSize int) int {
 	delay := progressCounts / bufferSize
 
 	switch {
-	case progressCounts < 500:
+	case progressCounts < 100:
 		delay = progressCounts * 10
 	case progressCounts <= 1000:
 		delay = progressCounts / 2

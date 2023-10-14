@@ -33,6 +33,12 @@ cmp out.txt testdata/out_offset2500_limit3050.txt
 
 ./go-cp -from testdata/input.txt -to out.txt -offset 5000 -limit 2000
 cmp out.txt testdata/out_offset5000_limit2000.txt
+
+./go-cp -from testdata/input.txt -to out.txt -offset -6000 -limit 1000
+cmp out.txt testdata/out_offset-6000_limit1000.txt
+
+./go-cp -from testdata/input.txt -to out.txt -offset -200 -limit 1000
+cmp out.txt testdata/out_offset-200_limit1000.txt
 # My tests end
 
 rm -f go-cp out.txt
