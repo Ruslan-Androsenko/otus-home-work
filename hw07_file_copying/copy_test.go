@@ -69,12 +69,12 @@ func TestCopy(t *testing.T) {
 			require.Equal(t, outputSum, referenceSum, "File checksums do not match")
 
 			// Получаем размер выходного файла
-			outputSize, errOutputSize := getFileSize(tc.input.to)
+			_, outputSize, errOutputSize := getReadFileAndHimSize(tc.input.to)
 			require.NoError(t, errOutputSize)
 			require.NotEqual(t, outputSize, 0)
 
 			// Получаем размер эталонного файла
-			referenceSize, errReferenceSize := getFileSize(tc.input.reference)
+			_, referenceSize, errReferenceSize := getReadFileAndHimSize(tc.input.reference)
 			require.NoError(t, errReferenceSize)
 			require.NotEqual(t, referenceSize, 0)
 
@@ -149,19 +149,4 @@ func getMd5Sum(filePath string) (string, error) {
 	}
 
 	return fmt.Sprintf("%X", fileSum.Sum(nil)), nil
-}
-
-// Получить размер файла.
-func getFileSize(filePath string) (int64, error) {
-	file, errFile := os.Open(filePath)
-	if errFile != nil {
-		return 0, errFile
-	}
-
-	info, errInfo := file.Stat()
-	if errInfo != nil {
-		return 0, errInfo
-	}
-
-	return info.Size(), nil
 }

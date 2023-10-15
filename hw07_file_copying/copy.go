@@ -19,46 +19,23 @@ var (
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
-	if len(fromPath) == 0 {
-		return ErrFromPathDoesNotExists
-	}
-
-	if len(toPath) == 0 {
-		return ErrToPathDoesNotExists
-	}
-
-	input, errInput := os.Open(fromPath)
-	if errInput != nil {
-		errMessage := fmt.Sprintf("failed read from input file, error: %v", errInput)
-		return errors.New(errMessage)
-	}
-
-	info, errInfo := input.Stat()
-	if errInfo != nil {
-		errMessage := fmt.Sprintf("failed read info meta data from input file, error: %v", errInfo)
-		return errors.New(errMessage)
-	}
-
-	inputFileSize := info.Size()
-	if inputFileSize <= 0 {
-		return ErrUnsupportedFile
-	}
-
 	var (
-		hasEndWrite                 bool
-		writeOffset, negativeOffset int64
+		errOffset   error
+		hasEndWrite bool
+		writeOffset int64
 	)
 
-	if offset < 0 {
-		negativeOffset = offset * (-1)
-		offset = inputFileSize - negativeOffset
+	errPaths := checkExistsPathsOfFiles(fromPath, toPath)
+	if errPaths != nil {
+		return errPaths
 	}
 
-	if offset > inputFileSize || negativeOffset > inputFileSize {
-		return ErrOffsetExceedsFileSize
+	input, inputFileSize, errInput := getReadFileAndHimSize(fromPath)
+	if errInput != nil {
+		return errInput
 	}
 
-	output, errOutput := os.OpenFile(toPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	output, errOutput := os.OpenFile(toPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if errOutput != nil {
 		errMessage := fmt.Sprintf("failed write to output file, error: %v", errOutput)
 		return errors.New(errMessage)
@@ -68,12 +45,14 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	buffer := make([]byte, bufferSize)
 	clearBuffer := make([]byte, bufferSize)
 
-	// Настраиваем прогресс бар
-	progressCounts := int(inputFileSize - offset)
-
-	if limit > 0 && limit < (inputFileSize-offset) {
-		progressCounts = int(limit)
+	// Проверка значения для смещения в исходном файле, и при необходимости его корректировка
+	offset, errOffset = correctOffsetForNegativeValue(offset, inputFileSize)
+	if errOffset != nil {
+		return errOffset
 	}
+
+	// Настраиваем прогресс бар
+	progressCounts := getProgressCounts(inputFileSize, offset)
 
 	bar := pb.StartNew(progressCounts)
 	bar.Set(pb.Bytes, true)
@@ -140,6 +119,67 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 
 	return nil
+}
+
+// Проверка наличия путей к файлам.
+func checkExistsPathsOfFiles(fromPath, toPath string) error {
+	if len(fromPath) == 0 {
+		return ErrFromPathDoesNotExists
+	}
+
+	if len(toPath) == 0 {
+		return ErrToPathDoesNotExists
+	}
+
+	return nil
+}
+
+// Открыть файл для чтения и получить информацию о его размере.
+func getReadFileAndHimSize(filePath string) (*os.File, int64, error) {
+	file, errFile := os.Open(filePath)
+	if errFile != nil {
+		errMessage := fmt.Sprintf("failed to read file, error: %v", errFile)
+		return nil, 0, errors.New(errMessage)
+	}
+
+	info, errInfo := file.Stat()
+	if errInfo != nil {
+		errMessage := fmt.Sprintf("failed read info meta data from file, error: %v", errInfo)
+		return nil, 0, errors.New(errMessage)
+	}
+
+	inputFileSize := info.Size()
+	if inputFileSize <= 0 {
+		return nil, 0, ErrUnsupportedFile
+	}
+
+	return file, inputFileSize, nil
+}
+
+// Корректировка смещения если было введено отрицательное значение.
+func correctOffsetForNegativeValue(offset, inputFileSize int64) (int64, error) {
+	var negativeOffset int64
+	if offset < 0 {
+		negativeOffset = offset * (-1)
+		offset = inputFileSize - negativeOffset
+	}
+
+	if offset > inputFileSize || negativeOffset > inputFileSize {
+		return 0, ErrOffsetExceedsFileSize
+	}
+
+	return offset, nil
+}
+
+// Получить количество записывемых байт для прогресс бара.
+func getProgressCounts(inputFileSize, offset int64) int {
+	progressCounts := int(inputFileSize - offset)
+
+	if limit > 0 && limit < (inputFileSize-offset) {
+		progressCounts = int(limit)
+	}
+
+	return progressCounts
 }
 
 // Получить количество милисекунд для имитации задержки.
