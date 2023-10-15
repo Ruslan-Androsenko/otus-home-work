@@ -14,15 +14,17 @@ import (
 var (
 	ErrUnsupportedFile       = errors.New("unsupported file")
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
+	ErrFromPathDoesNotExists = errors.New("from path a file does not exist")
+	ErrToPathDoesNotExists   = errors.New("to path a file does not exist")
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
 	if len(fromPath) == 0 {
-		return errors.New("from path a file does not exist")
+		return ErrFromPathDoesNotExists
 	}
 
 	if len(toPath) == 0 {
-		return errors.New("to path a file does not exist")
+		return ErrToPathDoesNotExists
 	}
 
 	input, errInput := os.Open(fromPath)
@@ -85,16 +87,19 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 			return errors.New(errMessage)
 		}
 
+		switch {
 		// Если прочитали меньше чем ожидалось, то уменьшаем размер буфера
-		if read < bufferSize {
+		case read < bufferSize:
 			buffer = buffer[:read]
 			hasEndWrite = true
-		} else if limit > 0 && limit < int64(read) {
-			// Если заданый лимит меньше чем прочитаная часть данных, то уменьшаем размер буфера
+
+		// Если заданый лимит меньше чем прочитаная часть данных, то уменьшаем размер буфера
+		case limit > 0 && limit < int64(read):
 			buffer = buffer[:limit]
 			hasEndWrite = true
-		} else if limit > 0 && limit < writeOffset+int64(bufferSize) {
-			// Если текущий проход записи данных, превышает заданый лимит, то уменьшаем размер буфера
+
+		// Если текущий проход записи данных, превышает заданый лимит, то уменьшаем размер буфера
+		case limit > 0 && limit < writeOffset+int64(bufferSize):
 			sliceOffset := int64(math.Abs(float64(writeOffset - limit)))
 			buffer = buffer[:sliceOffset]
 			hasEndWrite = true
@@ -137,7 +142,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	return nil
 }
 
-// Получить количество милисекунд для имитации задержки
+// Получить количество милисекунд для имитации задержки.
 func getDelay(progressCounts, bufferSize int) int {
 	delay := progressCounts / bufferSize
 
