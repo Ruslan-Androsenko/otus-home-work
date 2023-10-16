@@ -7,7 +7,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"time"
 
 	"github.com/cheggaaa/pb/v3"
 )
@@ -63,7 +62,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 
 	bar := pb.StartNew(progressCounts)
 	bar.Set(pb.Bytes, true)
-	delay := getDelay(progressCounts, bufferSize)
 	defer bar.Finish()
 
 	for offset < inputFileSize {
@@ -99,7 +97,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 
 		// Добавляем количество записанных байт в прогрессбар
 		bar.Add(written)
-		time.Sleep(time.Millisecond * time.Duration(delay))
 
 		// Очищаем буфер с данными
 		copy(buffer, clearBuffer)
@@ -187,22 +184,4 @@ func getProgressCounts(inputFileSize, offset int64) int {
 	}
 
 	return progressCounts
-}
-
-// Получить количество милисекунд для имитации задержки.
-func getDelay(progressCounts, bufferSize int) int {
-	delay := progressCounts / bufferSize
-
-	switch {
-	case progressCounts < 100:
-		delay = progressCounts * 10
-	case progressCounts <= 1000:
-		delay = progressCounts / 2
-	case progressCounts <= 2000:
-		delay = progressCounts / 4
-	default:
-		delay *= 50
-	}
-
-	return delay
 }
