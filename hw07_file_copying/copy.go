@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"os"
 	"time"
@@ -35,11 +36,17 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return errInput
 	}
 
+	// Закрываем входной файл
+	defer closeFile(input)
+
 	output, errOutput := os.OpenFile(toPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if errOutput != nil {
 		errMessage := fmt.Sprintf("failed write to output file, error: %v", errOutput)
 		return errors.New(errMessage)
 	}
+
+	// Закрываем выходной файл
+	defer closeFile(output)
 
 	bufferSize := 1024
 	buffer := make([]byte, bufferSize)
@@ -108,16 +115,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		}
 	}
 
-	errInput = input.Close()
-	if errInput != nil {
-		return errInput
-	}
-
-	errOutput = output.Close()
-	if errOutput != nil {
-		return errOutput
-	}
-
 	return nil
 }
 
@@ -154,6 +151,16 @@ func getReadFileAndHimSize(filePath string) (*os.File, int64, error) {
 	}
 
 	return file, inputFileSize, nil
+}
+
+// Закрыть файл.
+func closeFile(file *os.File) {
+	if file != nil {
+		err := file.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}
 }
 
 // Корректировка смещения если было введено отрицательное значение.

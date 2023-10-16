@@ -69,12 +69,16 @@ func TestCopy(t *testing.T) {
 			require.Equal(t, outputSum, referenceSum, "File checksums do not match")
 
 			// Получаем размер выходного файла
-			_, outputSize, errOutputSize := getReadFileAndHimSize(tc.input.to)
+			output, outputSize, errOutputSize := getReadFileAndHimSize(tc.input.to)
+			defer closeFile(output)
+
 			require.NoError(t, errOutputSize)
 			require.NotEqual(t, outputSize, 0)
 
 			// Получаем размер эталонного файла
-			_, referenceSize, errReferenceSize := getReadFileAndHimSize(tc.input.reference)
+			reference, referenceSize, errReferenceSize := getReadFileAndHimSize(tc.input.reference)
+			defer closeFile(reference)
+
 			require.NoError(t, errReferenceSize)
 			require.NotEqual(t, referenceSize, 0)
 
