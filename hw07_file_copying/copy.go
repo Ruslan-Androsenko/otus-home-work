@@ -91,6 +91,11 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 
 		written, errWrite := output.WriteAt(buffer, writeOffset)
 		if errWrite != nil {
+			errRemove := os.Remove(toPath)
+			if errRemove != nil {
+				log.Println(errRemove)
+			}
+
 			errMessage := fmt.Sprintf("error writing to output file, error: %v", errWrite)
 			return errors.New(errMessage)
 		}
