@@ -50,13 +50,81 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(3)
+
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("bbb", 200)
+		require.False(t, wasInCache)
+
+		// Читаем 2-й добавленный элемент, еще есть в кэше
+		val, ok := c.Get("bbb")
+		require.True(t, ok)
+		require.Equal(t, 200, val)
+
+		// Читаем 3-й добавленный элемент
+		wasInCache = c.Set("ccc", 300)
+		require.False(t, wasInCache)
+
+		// Читаем 1-й добавленный элемент
+		val, ok = c.Get("aaa")
+		require.True(t, ok)
+		require.Equal(t, 100, val)
+
+		// Добавляем 4-й элемент
+		wasInCache = c.Set("ddd", 400)
+		require.False(t, wasInCache)
+
+		// 2-й добавленный элемент вытолкнули из кэша
+		val, ok = c.Get("bbb")
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
+
+	t.Run("long used logic", func(t *testing.T) {
+		c := NewCache(3)
+
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("bbb", 200)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("ccc", 300)
+		require.False(t, wasInCache)
+
+		// Читаем 2-й добавленный элемент
+		val, ok := c.Get("bbb")
+		require.True(t, ok)
+		require.Equal(t, 200, val)
+
+		// Изменяем 1-й добавленный элемент
+		wasInCache = c.Set("aaa", 150)
+		require.True(t, wasInCache)
+
+		// Читаем 3-й добавленный элемент
+		val, ok = c.Get("ccc")
+		require.True(t, ok)
+		require.Equal(t, 300, val)
+
+		// Читаем 1-й добавленный элемент
+		val, ok = c.Get("aaa")
+		require.True(t, ok)
+		require.Equal(t, 150, val)
+
+		// Добавляем 4-й элемент
+		wasInCache = c.Set("ddd", 400)
+		require.False(t, wasInCache)
+
+		// 2-й добавленный элемент вытолкнули из кэша
+		val, ok = c.Get("bbb")
+		require.False(t, ok)
+		require.Nil(t, val)
 	})
 }
 
 func TestCacheMultithreading(t *testing.T) {
-	t.Skip() // Remove me if task with asterisk completed.
-
 	c := NewCache(10)
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
