@@ -27,7 +27,7 @@ func ReadDir(dir string) (Environment, error) {
 		return nil, errDir
 	}
 
-	// Инициализируем словась для переменных среды
+	// Инициализируем словарь для переменных среды
 	environments := make(Environment, len(files))
 
 	for _, file := range files {
@@ -73,11 +73,6 @@ func ReadDir(dir string) (Environment, error) {
 
 		// Добавляем новую переменную среды
 		environments[envName] = EnvValue{Value: envValue}
-		errEnv := os.Setenv(envName, envValue)
-		if errEnv != nil {
-			log.Printf("Failed to set environment variable: %s, error: %v \n", envName, errData)
-			continue
-		}
 	}
 
 	return environments, nil

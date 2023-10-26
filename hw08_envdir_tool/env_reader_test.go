@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,12 +21,10 @@ func TestReadDir(t *testing.T) {
 		require.NotNil(t, environments)
 
 		for _, key := range existsVariables {
-			valueEnv, okEnv := os.LookupEnv(key)
 			valueMap, okMap := environments[key]
 
-			require.True(t, okEnv && okMap)
+			require.True(t, okMap)
 			require.False(t, valueMap.NeedRemove)
-			require.Equal(t, valueEnv, valueMap.Value)
 		}
 	})
 
@@ -41,12 +38,10 @@ func TestReadDir(t *testing.T) {
 		require.NotNil(t, environments)
 
 		for _, key := range notExistsVariables {
-			valueEnv, okEnv := os.LookupEnv(key)
 			valueMap, okMap := environments[key]
 
-			require.True(t, !okEnv && okMap)
+			require.True(t, okMap)
 			require.True(t, valueMap.NeedRemove)
-			require.Empty(t, valueEnv)
 			require.Empty(t, valueMap.Value)
 		}
 	})
