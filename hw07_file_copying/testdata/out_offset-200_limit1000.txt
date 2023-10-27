@@ -1,0 +1,7 @@
+d places to chat.
+
+Report bugs either by running “go bug”, or manually at the Go issue tracker.
+
+The Go Gopher
+Copyright Terms of Service Privacy Policy Report a website issue
+Supported by Google
