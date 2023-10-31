@@ -2,6 +2,7 @@ package hw09structvalidator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -142,11 +143,27 @@ func TestValidate(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			var (
+				expectedErrs ValidationErrors
+				errsValidate ValidationErrors
+			)
+
 			tt := tt
 			t.Parallel()
 
-			err := Validate(tt.in)
-			require.EqualValues(t, tt.expectedErr, err)
+			// Запускаем валидацию и проверяем ошибки
+			resErrors := Validate(tt.in)
+			okExpected := errors.As(tt.expectedErr, &expectedErrs)
+
+			if errors.As(resErrors, &errsValidate) && okExpected {
+				for i, err := range errsValidate {
+					expected := expectedErrs[i]
+
+					require.Equal(t, expected.Field, err.Field, "Field name does not match")
+					require.ErrorIs(t, err.Err, expected.Err, "Error text does not match")
+					require.ErrorAs(t, err.Err, &expected.Err, "Error data type does not match")
+				}
+			}
 		})
 	}
 }
