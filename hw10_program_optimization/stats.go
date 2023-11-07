@@ -23,9 +23,13 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 			return nil, fmt.Errorf("read user error: %w", err)
 		}
 
-		if strings.HasSuffix(user.Email, domain) && strings.Contains(user.Email, "@") {
-			domainKey := strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])
-			result[domainKey]++
+		if strings.HasSuffix(user.Email, domain) {
+			emailParts := strings.SplitN(user.Email, "@", 2)
+
+			if len(emailParts) > 1 {
+				domainKey := strings.ToLower(emailParts[1])
+				result[domainKey]++
+			}
 		}
 	}
 
