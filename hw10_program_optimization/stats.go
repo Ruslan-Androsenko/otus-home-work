@@ -8,13 +8,7 @@ import (
 )
 
 type User struct {
-	ID       int `json:"Id"` //nolint:tagliatelle
-	Name     string
-	Username string
-	Email    string
-	Phone    string
-	Password string
-	Address  string
+	Email string
 }
 
 type DomainStat map[string]int
@@ -34,6 +28,10 @@ func getUsers(r io.Reader) (result users, err error) {
 	scanner := bufio.NewScanner(r)
 
 	for i := 0; scanner.Scan(); i++ {
+		if i >= len(result) {
+			break
+		}
+
 		if err = user.UnmarshalJSON(scanner.Bytes()); err != nil {
 			return
 		}
@@ -51,11 +49,7 @@ func countDomains(u users, domain string) (DomainStat, error) {
 	result := make(DomainStat)
 
 	for _, user := range u {
-		if user.ID == 0 {
-			break
-		}
-
-		if strings.Contains(user.Email, "."+domain) {
+		if strings.HasSuffix(user.Email, domain) && strings.Contains(user.Email, "@") {
 			domainKey := strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])
 			result[domainKey]++
 		}
