@@ -4,11 +4,11 @@ pkg: github.com/Ruslan-Androsenko/otus-home-work/hw10_program_optimization
 cpu: 11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz
                             │ ./benchstat/new.txt │
                             │       sec/op        │
-GetDomainStatFindCom-16               321.4µ ± 1%
-GetDomainStatFindGov-16               333.7µ ± 1%
-GetDomainStatFindNet-16               322.4µ ± 1%
-GetDomainStatFindUnknown-16           333.9µ ± 1%
-geomean                               327.8µ
+GetDomainStatFindCom-16               3.791µ ± 0%
+GetDomainStatFindGov-16               3.407µ ± 0%
+GetDomainStatFindNet-16               3.377µ ± 0%
+GetDomainStatFindUnknown-16           2.917µ ± 0%
+geomean                               3.358µ
 
                             │ ./benchstat/new.txt │
                             │        B/op         │
