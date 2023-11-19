@@ -1,16 +1,10 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"time"
-)
-
-const (
-	messageByClient = "Bye, client!\n"
-	messageByServer = "Bye-bye\n"
 )
 
 type TelnetClient interface {
@@ -64,27 +58,11 @@ func (t *Telnet) Close() error {
 }
 
 func (t *Telnet) Send() error {
-	errRead := readAndWrite(t.in, t.conn)
-	if errors.Is(errRead, io.EOF) {
-		errWrite := sendExitMessage(t.conn, messageByServer)
-		if errWrite != nil {
-			return errWrite
-		}
-	}
-
-	return errRead
+	return readAndWrite(t.in, t.conn)
 }
 
 func (t *Telnet) Receive() error {
-	errRead := readAndWrite(t.conn, t.out)
-	if errors.Is(errRead, io.EOF) {
-		errWrite := sendExitMessage(t.out, messageByClient)
-		if errWrite != nil {
-			return errWrite
-		}
-	}
-
-	return errRead
+	return readAndWrite(t.conn, t.out)
 }
 
 // Прочитать сообщение из входного источника, и записать его в выходной.
@@ -101,14 +79,4 @@ func readAndWrite(in io.ReadCloser, out io.Writer) error {
 	}
 
 	return errRead
-}
-
-// Отправить сообщение об завершении сессии.
-func sendExitMessage(out io.Writer, message string) error {
-	_, errWrite := out.Write([]byte(message))
-	if errWrite != nil {
-		return errWrite
-	}
-
-	return nil
 }
