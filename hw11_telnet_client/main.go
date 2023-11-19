@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -25,7 +26,7 @@ func main() {
 		log.Fatalln("Required arguments has missing (host or port)")
 	}
 
-	ctxNotify, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctxNotify, stop := signal.NotifyContext(context.Background(), syscall.SIGINT)
 	defer stop()
 
 	// Получаем из аргументов адрес хоста и порт.

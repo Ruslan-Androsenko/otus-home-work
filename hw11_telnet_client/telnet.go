@@ -53,9 +53,11 @@ func (t *Telnet) Close() error {
 		return fmt.Errorf("cannot closing input: %w", err)
 	}
 
-	err = t.conn.Close()
-	if err != nil {
-		return fmt.Errorf("cannot closing connect: %w", err)
+	if t.conn != nil {
+		err = t.conn.Close()
+		if err != nil {
+			return fmt.Errorf("cannot closing connect: %w", err)
+		}
 	}
 
 	return nil
