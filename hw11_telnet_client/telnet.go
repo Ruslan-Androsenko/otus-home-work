@@ -64,19 +64,3 @@ func (t *Telnet) Send() error {
 func (t *Telnet) Receive() error {
 	return readAndWrite(t.conn, t.out)
 }
-
-// Прочитать сообщение из входного источника, и записать его в выходной.
-func readAndWrite(in io.ReadCloser, out io.Writer) error {
-	buffer := make([]byte, 1024)
-	n, errRead := in.Read(buffer)
-	if hasBeenError(errRead) {
-		return fmt.Errorf("cannot read from input: %w", errRead)
-	}
-
-	_, errWrite := out.Write(buffer[:n])
-	if errWrite != nil {
-		return fmt.Errorf("cannot write to output: %w", errWrite)
-	}
-
-	return errRead
-}

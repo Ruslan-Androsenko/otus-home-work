@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
-	"io"
 	"log"
 	"net"
 	"os"
@@ -22,12 +20,15 @@ func init() {
 func main() {
 	flag.Parse()
 
-	if len(os.Args) < 3 {
+	if !hasCorrectArguments(os.Args) {
 		log.Fatalln("Required arguments has missing (host or port)")
 	}
 
 	ctxNotify, stop := signal.NotifyContext(context.Background(), syscall.SIGINT)
 	defer stop()
+
+	ctxTimeout, cancel := context.WithTimeout(ctxNotify, timeout)
+	defer cancel()
 
 	// Получаем из аргументов адрес хоста и порт.
 	countArgs := len(os.Args)
@@ -50,7 +51,7 @@ func main() {
 	go func() {
 		for {
 			select {
-			case <-ctxNotify.Done():
+			case <-ctxTimeout.Done():
 				return
 			default:
 				err = telnet.Send()
@@ -67,7 +68,7 @@ func main() {
 	go func() {
 		for {
 			select {
-			case <-ctxNotify.Done():
+			case <-ctxTimeout.Done():
 				return
 			default:
 				err = telnet.Receive()
@@ -80,21 +81,9 @@ func main() {
 		}
 	}()
 
-	<-ctxNotify.Done()
-	errNotify := ctxNotify.Err()
-	if hasBeenError(errNotify) {
-		log.Println(errNotify)
-	}
-}
-
-// Проверяем что это пришла ошибка а не конец файла.
-func hasBeenError(err error) bool {
-	return err != nil && !errors.Is(err, io.EOF)
-}
-
-// Остановить горутины если ошибка является концом файла.
-func stopGoroutinesIfEndOfFile(err error, stop context.CancelFunc) {
-	if errors.Is(err, io.EOF) {
-		stop()
+	<-ctxTimeout.Done()
+	err = ctxTimeout.Err()
+	if hasBeenError(err) {
+		log.Println(err)
 	}
 }
