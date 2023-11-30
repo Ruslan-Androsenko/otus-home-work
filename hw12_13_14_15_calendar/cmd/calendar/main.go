@@ -12,10 +12,12 @@ import (
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger"
 
 	internalhttp "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage/memory"
 )
 
-var configFile string
+var (
+	configFile string
+	logg       *logger.Logger
+)
 
 func init() {
 	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
@@ -30,11 +32,10 @@ func main() {
 	}
 
 	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	logg = logger.New(config.Logger.Level)
+	storage := config.GetStorage()
 
-	storage := memorystorage.New()
 	calendar := app.New(logg, storage)
-
 	server := internalhttp.NewServer(logg, calendar)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),

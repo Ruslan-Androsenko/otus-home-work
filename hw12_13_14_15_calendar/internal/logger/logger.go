@@ -46,6 +46,26 @@ func (l Logger) Debug(msg string) {
 	l.printMessage(msg, debugLevel)
 }
 
+func (l Logger) Fatalf(format string, values ...any) {
+	l.Fatal(fmt.Sprintf(format, values...))
+}
+
+func (l Logger) Errorf(format string, values ...any) {
+	l.Error(fmt.Sprintf(format, values...))
+}
+
+func (l Logger) Warningf(format string, values ...any) {
+	l.Warning(fmt.Sprintf(format, values...))
+}
+
+func (l Logger) Infof(format string, values ...any) {
+	l.Info(fmt.Sprintf(format, values...))
+}
+
+func (l Logger) Debugf(format string, values ...any) {
+	l.Debug(fmt.Sprintf(format, values...))
+}
+
 // Напечатать отформатированное сообщение в консоль.
 func (l Logger) printMessage(msg string, level logLevel) {
 	if level > l.level {
