@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"os"
 	"os/signal"
@@ -16,6 +17,7 @@ import (
 
 var (
 	configFile string
+	dbConn     *sql.DB
 	logg       *logger.Logger
 )
 
@@ -35,12 +37,34 @@ func main() {
 	logg = logger.New(config.Logger.Level)
 	storage := config.GetStorage()
 
-	calendar := app.New(logg, storage)
-	server := internalhttp.NewServer(logg, calendar)
-
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
+
+	if config.Storage.Type == StorageTypeDataBase {
+		defer func() {
+			err := storage.Close()
+			if err != nil {
+				logg.Fatalf("Can't close database connection. Error: %v", err)
+			}
+		}()
+
+		err := storage.Connect(ctx)
+		if err != nil {
+			logg.Fatalf("Can't connect to database. Error: %v", err)
+		}
+
+		if hasMigrationUpCommand() {
+			migrationUp(ctx)
+			return
+		} else if hasMigrationDownCommand() {
+			migrationDown(ctx)
+			return
+		}
+	}
+
+	calendar := app.New(logg, storage)
+	server := internalhttp.NewServer(logg, calendar)
 
 	go func() {
 		<-ctx.Done()

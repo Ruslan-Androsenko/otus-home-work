@@ -27,9 +27,12 @@ type Logger interface {
 }
 
 type Storage interface {
-	CreateEvent(event storage.Event) error
-	UpdateEvent(id string, event storage.Event) error
-	DeleteEvent(id string) error
+	Connect(ctx context.Context) error
+	Close() error
+
+	CreateEvent(ctx context.Context, event storage.Event) error
+	UpdateEvent(ctx context.Context, id string, event storage.Event) error
+	DeleteEvent(ctx context.Context, id string) error
 
 	GetEventById(id string) (storage.Event, error)
 	GetEventsOfDay(date time.Time) ([]storage.Event, error)
@@ -46,7 +49,7 @@ func New(logger Logger, storage Storage) *App {
 
 // CreateEvent Создать событие.
 func (a *App) CreateEvent(ctx context.Context, event storage.Event) error {
-	err := a.storage.CreateEvent(event)
+	err := a.storage.CreateEvent(ctx, event)
 	if err == nil {
 		a.logger.Debugf("Event has been created, id: %s", event.ID)
 	}
@@ -55,12 +58,12 @@ func (a *App) CreateEvent(ctx context.Context, event storage.Event) error {
 }
 
 // UpdateEvent Изменить событие.
-func (a *App) UpdateEvent(id string, event storage.Event) error {
+func (a *App) UpdateEvent(ctx context.Context, id string, event storage.Event) error {
 	if id != event.ID {
 		return storage.ErrEventIDCantChanged
 	}
 
-	err := a.storage.UpdateEvent(id, event)
+	err := a.storage.UpdateEvent(ctx, id, event)
 	if err == nil {
 		a.logger.Debugf("Event has been updated, id: %s", id)
 	}
@@ -69,8 +72,8 @@ func (a *App) UpdateEvent(id string, event storage.Event) error {
 }
 
 // DeleteEvent Удалить событие.
-func (a *App) DeleteEvent(id string) error {
-	err := a.storage.DeleteEvent(id)
+func (a *App) DeleteEvent(ctx context.Context, id string) error {
+	err := a.storage.DeleteEvent(ctx, id)
 	if err == nil {
 		a.logger.Debugf("Event has been deleted, id: %s", id)
 	}

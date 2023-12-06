@@ -46,8 +46,8 @@ func (config Config) GetStorage() app.Storage {
 	case StorageTypeMemory:
 		storage = memorystorage.New()
 	case StorageTypeDataBase:
-		dbConn := config.Storage.NewDBConnection()
-		storage = sqlstorage.New(dbConn)
+		dbConn = config.Storage.NewDBConnection()
+		storage = sqlstorage.New(dbConn, logg)
 	default:
 		logg.Fatal("Storage type not found")
 	}

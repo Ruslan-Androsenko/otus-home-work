@@ -3,6 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/pressly/goose/v3"
 )
 
 type DataBaseConf struct {
@@ -19,8 +22,12 @@ func (storage StorageConf) NewDBConnection() *sql.DB {
 	db, err := sql.Open("mysql", dataSource)
 
 	if err != nil {
-		errorMessage := fmt.Sprintf("Can't open database connection, error: %v", err)
-		logg.Fatal(errorMessage)
+		logg.Fatalf("Can't open database connection. Error: %v", err)
+	}
+
+	err = goose.SetDialect("mysql")
+	if err != nil {
+		logg.Fatalf("Failed to set SQL dialect. Error: %v", err)
 	}
 
 	return db
