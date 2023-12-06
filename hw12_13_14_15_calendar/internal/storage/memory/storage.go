@@ -1,6 +1,7 @@
 package memorystorage
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -16,6 +17,14 @@ func New() *Storage {
 	return &Storage{
 		data: make(map[string]storage.Event),
 	}
+}
+
+func (s *Storage) Connect(ctx context.Context) error {
+	return nil
+}
+
+func (s *Storage) Close() error {
+	return nil
 }
 
 // Проверяем имеется ли событие по ID.
@@ -43,11 +52,7 @@ func (s *Storage) hasExistsByDate(date time.Time) bool {
 }
 
 // CreateEvent Создать событие.
-func (s *Storage) CreateEvent(event storage.Event) error {
-	if s.hasExistsById(event.ID) {
-		return storage.ErrEventAlreadyExists
-	}
-
+func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
 	if s.hasExistsByDate(event.Date) {
 		return storage.ErrEventDateTimeBusy
 	}
@@ -66,7 +71,7 @@ func (s *Storage) CreateEvent(event storage.Event) error {
 }
 
 // UpdateEvent Изменить событие.
-func (s *Storage) UpdateEvent(id string, event storage.Event) error {
+func (s *Storage) UpdateEvent(ctx context.Context, id string, event storage.Event) error {
 	if !s.hasExistsById(id) {
 		return storage.ErrEventDoesNotExist
 	}
@@ -79,7 +84,7 @@ func (s *Storage) UpdateEvent(id string, event storage.Event) error {
 }
 
 // DeleteEvent Удалить событие.
-func (s *Storage) DeleteEvent(id string) error {
+func (s *Storage) DeleteEvent(ctx context.Context, id string) error {
 	if !s.hasExistsById(id) {
 		return storage.ErrEventDoesNotExist
 	}

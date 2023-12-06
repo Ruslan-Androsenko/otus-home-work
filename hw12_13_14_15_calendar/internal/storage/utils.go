@@ -18,11 +18,16 @@ var daysOfRange = map[Period]time.Duration{
 	PeriodMonth: 30,
 }
 
+const (
+	DateFormat     = "2006-01-02"
+	DateTimeFormat = "2006-01-02 15:04:05"
+)
+
 // MakeDateRange Сформировать необходимый диапазон дат.
 func MakeDateRange(date time.Time, period Period) (dateFrom, dateTo time.Time) {
 	var defaultDate time.Time
-	currentDay := date.Format("2006-01-02")
-	dateFrom, err := time.ParseInLocation("2006-01-02 15:04:05", currentDay+" 00:00:00", time.Local)
+	currentDay := date.Format(DateFormat)
+	dateFrom, err := time.ParseInLocation(DateTimeFormat, currentDay+" 00:00:00", time.Local)
 	if err != nil {
 		return defaultDate, defaultDate
 	}
