@@ -6,6 +6,7 @@ import (
 	"github.com/BurntSushi/toml"
 
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app"
+	internalhttp "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/http"
 	memorystorage "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage/sql"
 )
@@ -15,6 +16,7 @@ import (
 // при их конструировании только необходимые параметры, а также уменьшает вероятность циклической зависимости.
 
 type Config struct {
+	Server  internalhttp.ServerConf
 	Storage StorageConf
 	Logger  LoggerConf
 }

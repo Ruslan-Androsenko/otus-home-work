@@ -182,7 +182,7 @@ func (s *Storage) FindEventsByPeriod(date time.Time, period storage.Period) ([]s
 
 	dateFrom, dateTo := storage.MakeDateRange(date, period)
 	fields := "id, title, date, date_end, description, owner_id, notification"
-	sqlQuery := fmt.Sprintf("select %s from `%s` where date between '%s' and '%s';",
+	sqlQuery := fmt.Sprintf("select %s from `%s` where date between '%s' and '%s' order by date asc;",
 		fields, storage.EventTableName,
 		dateFrom.Format(storage.DateTimeFormat), dateTo.Format(storage.DateTimeFormat))
 
@@ -197,9 +197,21 @@ func (s *Storage) FindEventsByPeriod(date time.Time, period storage.Period) ([]s
 		}
 	}()
 
+	var eventDate, eventDateEnd string
+
 	for rows.Next() {
-		if err = rows.Scan(&event.ID, &event.Title, &event.Date, &event.DateEnd,
+		if err = rows.Scan(&event.ID, &event.Title, &eventDate, &eventDateEnd,
 			&event.Description, &event.OwnerID, &event.Notification); err != nil {
+			return nil, err
+		}
+
+		event.Date, err = time.ParseInLocation(storage.DateTimeFormat, eventDate, time.Local)
+		if err != nil {
+			return nil, err
+		}
+
+		event.DateEnd, err = time.ParseInLocation(storage.DateTimeFormat, eventDateEnd, time.Local)
+		if err != nil {
 			return nil, err
 		}
 
