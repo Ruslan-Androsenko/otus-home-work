@@ -34,7 +34,7 @@ type Storage interface {
 	UpdateEvent(ctx context.Context, id string, event storage.Event) error
 	DeleteEvent(ctx context.Context, id string) error
 
-	GetEventById(id string) (storage.Event, error)
+	GetEventByID(id string) (storage.Event, error)
 	GetEventsOfDay(date time.Time) ([]storage.Event, error)
 	GetEventsOfWeek(date time.Time) ([]storage.Event, error)
 	GetEventsOfMonth(date time.Time) ([]storage.Event, error)
@@ -81,9 +81,9 @@ func (a *App) DeleteEvent(ctx context.Context, id string) error {
 	return err
 }
 
-// GetEventById Получить событие по его ID.
-func (a *App) GetEventById(id string) (storage.Event, error) {
-	return a.storage.GetEventById(id)
+// GetEventByID Получить событие по его ID.
+func (a *App) GetEventByID(id string) (storage.Event, error) {
+	return a.storage.GetEventByID(id)
 }
 
 // GetEventsOfDay Получить события за день.

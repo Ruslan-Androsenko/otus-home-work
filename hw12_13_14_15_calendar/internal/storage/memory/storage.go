@@ -9,7 +9,7 @@ import (
 )
 
 type Storage struct {
-	mu   sync.RWMutex //nolint:unused
+	mu   sync.RWMutex
 	data map[string]storage.Event
 }
 
@@ -28,7 +28,7 @@ func (s *Storage) Close() error {
 }
 
 // Проверяем имеется ли событие по ID.
-func (s *Storage) hasExistsById(id string) bool {
+func (s *Storage) hasExistsByID(id string) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -72,7 +72,7 @@ func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
 
 // UpdateEvent Изменить событие.
 func (s *Storage) UpdateEvent(ctx context.Context, id string, event storage.Event) error {
-	if !s.hasExistsById(id) {
+	if !s.hasExistsByID(id) {
 		return storage.ErrEventDoesNotExist
 	}
 
@@ -85,7 +85,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, id string, event storage.Even
 
 // DeleteEvent Удалить событие.
 func (s *Storage) DeleteEvent(ctx context.Context, id string) error {
-	if !s.hasExistsById(id) {
+	if !s.hasExistsByID(id) {
 		return storage.ErrEventDoesNotExist
 	}
 
@@ -96,8 +96,8 @@ func (s *Storage) DeleteEvent(ctx context.Context, id string) error {
 	return nil
 }
 
-// GetEventById Получить событие по его ID.
-func (s *Storage) GetEventById(id string) (storage.Event, error) {
+// GetEventByID Получить событие по его ID.
+func (s *Storage) GetEventByID(id string) (storage.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

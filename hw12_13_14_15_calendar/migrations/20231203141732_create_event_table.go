@@ -4,9 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/pressly/goose/v3"
-
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage"
+	"github.com/pressly/goose/v3"
 )
 
 func init() {

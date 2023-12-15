@@ -33,7 +33,7 @@ func MakeDateRange(date time.Time, period Period) (dateFrom, dateTo time.Time) {
 	}
 
 	if days, ok := daysOfRange[period]; ok {
-		dateTo = dateFrom.Add(time.Hour * 24 * days)
+		dateTo = dateFrom.Add(time.Hour * 24 * days) //nolint:durationcheck
 	} else {
 		return defaultDate, defaultDate
 	}

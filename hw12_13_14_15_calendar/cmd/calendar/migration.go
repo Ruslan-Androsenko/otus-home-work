@@ -3,9 +3,8 @@ package main
 import (
 	"context"
 
-	"github.com/pressly/goose/v3"
-
 	_ "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/migrations"
+	"github.com/pressly/goose/v3"
 )
 
 func migrationUp(ctx context.Context) {

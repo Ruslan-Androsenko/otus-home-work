@@ -9,18 +9,17 @@ import (
 )
 
 type DataBaseConf struct {
-	DbHost string `toml:"db_host"`
-	DbPort int    `toml:"db_port"`
-	DbUser string `toml:"db_user"`
-	DbPass string `toml:"db_pass"`
-	DbName string `toml:"db_name"`
+	DBHost string `toml:"db_host"`
+	DBPort int    `toml:"db_port"`
+	DBUser string `toml:"db_user"`
+	DBPass string `toml:"db_pass"`
+	DBName string `toml:"db_name"`
 }
 
 // NewDBConnection подключение к БД сервиса.
 func (storage StorageConf) NewDBConnection() *sql.DB {
 	dataSource := storage.DataBase.getDataSource()
 	db, err := sql.Open("mysql", dataSource)
-
 	if err != nil {
 		logg.Fatalf("Can't open database connection. Error: %v", err)
 	}
@@ -36,5 +35,5 @@ func (storage StorageConf) NewDBConnection() *sql.DB {
 // Получить строку соединения для БД.
 func (config DataBaseConf) getDataSource() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s",
-		config.DbUser, config.DbPass, config.DbHost, config.DbPort, config.DbName)
+		config.DBUser, config.DBPass, config.DBHost, config.DBPort, config.DBName)
 }

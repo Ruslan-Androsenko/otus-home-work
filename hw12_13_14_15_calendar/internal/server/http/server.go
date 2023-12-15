@@ -37,7 +37,7 @@ type Logger interface {
 type Application interface {
 	UpdateEvent(ctx context.Context, id string, event storage.Event) error
 	DeleteEvent(ctx context.Context, id string) error
-	GetEventById(id string) (storage.Event, error)
+	GetEventByID(id string) (storage.Event, error)
 
 	GetEventsOfDay(date time.Time) ([]storage.Event, error)
 	GetEventsOfWeek(date time.Time) ([]storage.Event, error)
@@ -53,7 +53,8 @@ func NewServer(logger Logger, app Application, config ServerConf) *Server {
 	return &Server{
 		app: app,
 		server: http.Server{
-			Addr: address,
+			Addr:              address,
+			ReadHeaderTimeout: time.Second * 3,
 		},
 	}
 }

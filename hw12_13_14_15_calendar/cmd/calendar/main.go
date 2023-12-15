@@ -11,7 +11,6 @@ import (
 
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger"
-
 	internalhttp "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/http"
 )
 
