@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
@@ -22,6 +21,6 @@ func printVersion() {
 		BuildDate: buildDate,
 		GitHash:   gitHash,
 	}); err != nil {
-		fmt.Printf("error while decode version info: %v\n", err)
+		logg.Errorf("error while decode version info. Error: %v", err)
 	}
 }

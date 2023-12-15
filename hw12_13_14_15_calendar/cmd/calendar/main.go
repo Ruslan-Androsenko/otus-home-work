@@ -2,19 +2,23 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app"
+	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger"
+	internalhttp "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/http"
 )
 
-var configFile string
+var (
+	configFile string
+	dbConn     *sql.DB
+	logg       *logger.Logger
+)
 
 func init() {
 	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
@@ -23,22 +27,43 @@ func init() {
 func main() {
 	flag.Parse()
 
-	if flag.Arg(0) == "version" {
+	if hasVersionCommand() {
 		printVersion()
 		return
 	}
 
 	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
-
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
-
-	server := internalhttp.NewServer(logg, calendar)
+	logg = logger.New(config.Logger.Level)
+	storage := config.GetStorage()
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
+
+	if config.Storage.Type == StorageTypeDataBase {
+		defer func() {
+			err := storage.Close()
+			if err != nil {
+				logg.Fatalf("Can't close database connection. Error: %v", err)
+			}
+		}()
+
+		err := storage.Connect(ctx)
+		if err != nil {
+			logg.Fatalf("Can't connect to database. Error: %v", err)
+		}
+
+		if hasMigrationUpCommand() {
+			migrationUp(ctx)
+			return
+		} else if hasMigrationDownCommand() {
+			migrationDown(ctx)
+			return
+		}
+	}
+
+	calendar := app.New(logg, storage)
+	server := internalhttp.NewServer(logg, calendar, config.Server)
 
 	go func() {
 		<-ctx.Done()
