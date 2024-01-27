@@ -49,12 +49,12 @@ migrate-down: build-database
 	$(BIN_DATABASE) -config ./configs/config-database.toml migration-down
 
 test:
-	go test -race -v -count 100 -timeout=20m ./internal/...
+	go test -race -v -count 100 -timeout=2m ./internal/...
 
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LINTER_PATH) v1.50.1
+	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LINTER_PATH) v1.55.2
 
 lint: install-lint-deps
-	golangci-lint run ./...
+	$(LINTER_BIN) run ./...
 
 .PHONY: build build-database run run-database build-img run-img up down restart version migrate-up migrate-down test lint
