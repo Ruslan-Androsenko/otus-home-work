@@ -31,7 +31,7 @@ func upCreateEventsTable(ctx context.Context, tx *sql.Tx) error {
 }
 
 func downCreateEventsTable(ctx context.Context, tx *sql.Tx) error {
-	_, err := tx.Exec("drop table `" + storage.EventTableName + "`;")
+	_, err := tx.ExecContext(ctx, "drop table `"+storage.EventTableName+"`;")
 	if err != nil {
 		return err
 	}

@@ -19,7 +19,7 @@ func (s *Server) rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Обработчик для приветственной страницы.
-func (s *Server) helloHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) helloHandler(w http.ResponseWriter, _ *http.Request) {
 	_, err := w.Write([]byte("Welcome to the Hello Page!"))
 	if err != nil {
 		logg.Errorf("Failed to display hello page. Error: %v", err)

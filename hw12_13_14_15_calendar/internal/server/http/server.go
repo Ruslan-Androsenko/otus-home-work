@@ -59,7 +59,7 @@ func NewServer(logger Logger, app Application, config ServerConf) *Server {
 	}
 }
 
-func (s *Server) Start(ctx context.Context) error {
+func (s *Server) Start(_ context.Context) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.rootHandler)
 	mux.HandleFunc("/hello", s.helloHandler)
@@ -68,6 +68,6 @@ func (s *Server) Start(ctx context.Context) error {
 	return s.server.ListenAndServe()
 }
 
-func (s *Server) Stop(ctx context.Context) error {
+func (s *Server) Stop(_ context.Context) error {
 	return s.server.Close()
 }
