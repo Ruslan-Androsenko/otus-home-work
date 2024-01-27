@@ -9,6 +9,24 @@ linters-settings:
     lines: 150
     statements: 80
 
+  depguard:
+    rules:
+      main:
+        # List of allowed packages.
+        allow:
+          - $gostd
+          - github.com/BurntSushi/toml
+          - github.com/go-sql-driver/mysql
+          - github.com/google/uuid
+          - github.com/pressly/goose/v3
+          - github.com/stretchr/testify/require
+          - github.com/stretchr/testify/suite
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/http
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/migrations
+
 issues:
   exclude-rules:
     - path: _test\.go
@@ -40,6 +58,8 @@ linters:
     - gofmt
     - gofumpt
     - goheader
+    - gomoddirectives
+    - gomodguard
     - goprintffuncname
     - gosec
     - gosimple
@@ -60,6 +80,7 @@ linters:
     - stylecheck
     - tagliatelle
     - thelper
+    - tparallel
     - typecheck
     - unconvert
     - unparam
