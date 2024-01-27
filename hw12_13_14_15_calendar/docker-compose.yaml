@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  calendar.service:
+    build:
+      context: .
+      dockerfile: build/Dockerfile
+    image: calendar:compose
+    network_mode: "host"
+    container_name: calendar.service
