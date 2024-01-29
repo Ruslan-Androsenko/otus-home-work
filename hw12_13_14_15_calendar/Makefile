@@ -29,7 +29,8 @@ build-img:
 run-img: build-img
 	docker run --rm \
 		--name=$(CONTAINER_NAME) \
-		--network="host" $(DOCKER_IMG)
+		--publish="8080:8080" \
+		$(DOCKER_IMG)
 
 up:
 	docker compose up -d --build
