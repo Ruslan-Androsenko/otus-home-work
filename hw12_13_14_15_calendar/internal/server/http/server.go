@@ -1,53 +1,21 @@
 package internalhttp
 
 import (
-	"context"
-	"net"
 	"net/http"
-	"strconv"
 	"time"
 
-	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage"
+	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server"
 )
 
 type Server struct {
-	app    Application
+	app    server.Application
 	server http.Server
 }
 
-type ServerConf struct {
-	Host string
-	Port int
-}
+var logg server.Logger
 
-type Logger interface {
-	Fatal(msg string)
-	Error(msg string)
-	Warning(msg string)
-	Info(msg string)
-	Debug(msg string)
-
-	Fatalf(format string, values ...any)
-	Errorf(format string, values ...any)
-	Warningf(format string, values ...any)
-	Infof(format string, values ...any)
-	Debugf(format string, values ...any)
-}
-
-type Application interface {
-	UpdateEvent(ctx context.Context, id string, event storage.Event) error
-	DeleteEvent(ctx context.Context, id string) error
-	GetEventByID(id string) (storage.Event, error)
-
-	GetEventsOfDay(date time.Time) ([]storage.Event, error)
-	GetEventsOfWeek(date time.Time) ([]storage.Event, error)
-	GetEventsOfMonth(date time.Time) ([]storage.Event, error)
-}
-
-var logg Logger
-
-func NewServer(logger Logger, app Application, config ServerConf) *Server {
-	address := net.JoinHostPort(config.Host, strconv.Itoa(config.Port))
+func NewServer(config server.Conf, app server.Application, logger server.Logger) *Server {
+	address := config.GetHTTPAddress()
 	logg = logger
 
 	return &Server{
@@ -59,7 +27,7 @@ func NewServer(logger Logger, app Application, config ServerConf) *Server {
 	}
 }
 
-func (s *Server) Start(_ context.Context) error {
+func (s *Server) Start() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.rootHandler)
 	mux.HandleFunc("/hello", s.helloHandler)
@@ -68,6 +36,6 @@ func (s *Server) Start(_ context.Context) error {
 	return s.server.ListenAndServe()
 }
 
-func (s *Server) Stop(_ context.Context) error {
+func (s *Server) Stop() error {
 	return s.server.Close()
 }
