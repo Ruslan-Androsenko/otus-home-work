@@ -7,12 +7,12 @@ import (
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server"
 )
 
+var logg server.Logger
+
 type Server struct {
 	app    server.Application
 	server http.Server
 }
-
-var logg server.Logger
 
 func NewServer(config server.Conf, app server.Application, logger server.Logger) *Server {
 	address := config.GetHTTPAddress()
@@ -29,8 +29,17 @@ func NewServer(config server.Conf, app server.Application, logger server.Logger)
 
 func (s *Server) Start() error {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", s.rootHandler)
-	mux.HandleFunc("/hello", s.helloHandler)
+	mux.HandleFunc(homePage, s.homePageHandler)
+	mux.HandleFunc(helloPage, s.helloPageHandler)
+
+	mux.HandleFunc(createEvent, s.createEventHandler)
+	mux.HandleFunc(updateEvent, s.updateEventHandler)
+	mux.HandleFunc(deleteEvent, s.deleteEventHandler)
+
+	mux.HandleFunc(getEventByID, s.getEventHandler)
+	mux.HandleFunc(getEventOfDay, s.getEventsOfDayHandler)
+	mux.HandleFunc(getEventOfWeek, s.getEventsOfWeekHandler)
+	mux.HandleFunc(getEventOfMonth, s.getEventsOfMonthHandler)
 
 	s.server.Handler = loggingMiddleware(mux)
 	return s.server.ListenAndServe()

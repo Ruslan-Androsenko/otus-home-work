@@ -142,12 +142,12 @@ func (s Storage) GetEventByID(id string) (storage.Event, error) {
 		return defaultEvent, err
 	}
 
-	event.Date, err = time.Parse(storage.DateTimeFormat, date)
+	event.Date, err = time.ParseInLocation(storage.DateTimeFormat, date, time.Local)
 	if err != nil {
 		s.logger.Errorf("Failed parse field date: %s, Error: %v", date, err)
 	}
 
-	event.DateEnd, err = time.Parse(storage.DateTimeFormat, dateEnd)
+	event.DateEnd, err = time.ParseInLocation(storage.DateTimeFormat, dateEnd, time.Local)
 	if err != nil {
 		s.logger.Errorf("Failed parse field date_end: %s, Error: %v", dateEnd, err)
 	}
