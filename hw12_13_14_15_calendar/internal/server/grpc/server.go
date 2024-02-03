@@ -8,6 +8,7 @@ import (
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/api/proto"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -30,9 +31,19 @@ func NewServer(config server.Conf, app server.Application, logger server.Logger)
 		logg.Fatalf("Failed to listen: %v", err)
 	}
 
+	// Настраиваем интерцептор логирования запросов
+	loggingOpts := []logging.Option{
+		logging.WithLogOnEvents(logging.PayloadSent),
+	}
+	opts := []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(
+			logging.UnaryServerInterceptor(InterceptorLogger(logger), loggingOpts...),
+		),
+	}
+
 	return &Server{
 		app:      app,
-		grpc:     grpc.NewServer(),
+		grpc:     grpc.NewServer(opts...),
 		listener: listener,
 	}
 }

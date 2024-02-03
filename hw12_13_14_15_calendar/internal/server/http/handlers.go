@@ -172,5 +172,11 @@ func getEventsListByDate(
 	}
 
 	response := DataResponse{"state": "success", "data": events}
+
+	if events == nil {
+		response = DataResponse{"state": "not found", "data": nil}
+		w.WriteHeader(http.StatusNotFound)
+	}
+
 	SendResponse(w, response, caption)
 }
