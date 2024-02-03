@@ -4,14 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/api"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/http"
 )
 
 var (
@@ -63,7 +62,7 @@ func main() {
 	}
 
 	calendar := app.New(logg, storage)
-	server := internalhttp.NewServer(logg, calendar, config.Server)
+	server := api.NewServer(config.Server, calendar, logg)
 
 	go func() {
 		<-ctx.Done()
@@ -71,16 +70,9 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
-		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
-		}
+		server.Stop(ctx)
 	}()
 
 	logg.Info("calendar is running...")
-
-	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		cancel()
-		os.Exit(1) //nolint:gocritic
-	}
+	server.Start(ctx, cancel)
 }
