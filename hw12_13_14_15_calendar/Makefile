@@ -29,6 +29,7 @@ build-img:
 run-img: build-img
 	docker run --rm \
 		--name=$(CONTAINER_NAME) \
+		--publish="8070:8070" \
 		--publish="8080:8080" \
 		$(DOCKER_IMG)
 
