@@ -15,6 +15,12 @@ import (
 func loadParams(r *http.Request) (map[string]interface{}, error) {
 	var params map[string]interface{}
 
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			logg.Errorf("Cannot close body: %v", err)
+		}
+	}()
+
 	buffer := make([]byte, 1024)
 	read, err := r.Body.Read(buffer)
 	if !errors.Is(err, io.EOF) {

@@ -16,20 +16,20 @@ func (s *Server) createEventHandler(w http.ResponseWriter, r *http.Request) {
 	params, err := loadParams(r)
 	if !errors.Is(err, io.EOF) {
 		logg.Errorf("%v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	event, errParse := makeCreateParams(params)
 	if errParse != nil {
 		logg.Errorf("Failed to parse create params: %v, Error: %v", params, errParse)
-		http.Error(w, errParse.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotAcceptable)
 		return
 	}
 
 	if err = s.app.CreateEvent(ctx, event); err != nil {
 		logg.Errorf("Failed to create new event: %v, Error: %v", event, err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -42,20 +42,20 @@ func (s *Server) updateEventHandler(w http.ResponseWriter, r *http.Request) {
 	params, err := loadParams(r)
 	if !errors.Is(err, io.EOF) {
 		logg.Errorf("%v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	eventID, event, errParse := makeUpdateParams(params)
 	if errParse != nil {
 		logg.Errorf("Failed to parse update params: %v, Error: %v", params, errParse)
-		http.Error(w, errParse.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotAcceptable)
 		return
 	}
 
 	if err = s.app.UpdateEvent(ctx, eventID, event); err != nil {
 		logg.Errorf("Failed to update eventID: %s, event: %v, Error: %v", eventID, event, err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -67,14 +67,14 @@ func (s *Server) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
 	params, err := loadParams(r)
 	if !errors.Is(err, io.EOF) {
 		logg.Errorf("%v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	eventID := makeGetEventByIDParams(params)
 	if err = s.app.DeleteEvent(ctx, eventID); err != nil {
 		logg.Errorf("Failed to delete eventID: %v, Error: %v", eventID, err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotAcceptable)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (s *Server) getEventHandler(w http.ResponseWriter, r *http.Request) {
 	params, err := loadParams(r)
 	if !errors.Is(err, io.EOF) {
 		logg.Errorf("%v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -100,7 +100,7 @@ func (s *Server) getEventHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		logg.Errorf("Failed to get event by id: %v, Error: %v", eventID, err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -129,21 +129,21 @@ func getEventsListByDate(
 	params, err := loadParams(r)
 	if !errors.Is(err, io.EOF) {
 		logg.Errorf("%v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	eventDate, errParse := makeGetEventsByDateParams(params)
 	if errParse != nil {
 		logg.Errorf("Failed to parse get events params: %v, Error: %v", params, errParse)
-		http.Error(w, errParse.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotAcceptable)
 		return
 	}
 
 	events, err := getEventsFn(eventDate)
 	if err != nil {
 		logg.Errorf("Failed to get events of date: %v, Error: %v", eventDate, err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
