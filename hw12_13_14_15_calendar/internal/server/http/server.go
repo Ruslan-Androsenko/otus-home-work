@@ -29,9 +29,6 @@ func NewServer(config server.Conf, app server.Application, logger server.Logger)
 
 func (s *Server) Start() error {
 	mux := http.NewServeMux()
-	mux.HandleFunc(homePage, s.homePageHandler)
-	mux.HandleFunc(helloPage, s.helloPageHandler)
-
 	mux.HandleFunc(createEvent, s.createEventHandler)
 	mux.HandleFunc(updateEvent, s.updateEventHandler)
 	mux.HandleFunc(deleteEvent, s.deleteEventHandler)

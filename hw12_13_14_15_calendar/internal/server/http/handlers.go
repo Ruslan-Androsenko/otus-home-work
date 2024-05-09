@@ -12,30 +12,6 @@ import (
 
 var ctx = context.Background()
 
-// Обработчик для главной страницы.
-func (s *Server) homePageHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != homePage {
-		logg.Errorf("Request for a non-existent page: %s", r.URL.Path)
-		http.NotFound(w, r)
-		return
-	}
-
-	_, err := w.Write([]byte("Welcome to the Home Page!"))
-	if err != nil {
-		logg.Errorf("Failed to display home page. Error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-// Обработчик для приветственной страницы.
-func (s *Server) helloPageHandler(w http.ResponseWriter, _ *http.Request) {
-	_, err := w.Write([]byte("Welcome to the Hello Page!"))
-	if err != nil {
-		logg.Errorf("Failed to display hello page. Error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
 func (s *Server) createEventHandler(w http.ResponseWriter, r *http.Request) {
 	params, err := loadParams(r)
 	if !errors.Is(err, io.EOF) {

@@ -1,8 +1,6 @@
 package internalhttp
 
 const (
-	homePage        = "/"
-	helloPage       = "/hello"
 	createEvent     = "/create-event"
 	updateEvent     = "/update-event"
 	deleteEvent     = "/delete-event"
