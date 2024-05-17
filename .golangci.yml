@@ -35,6 +35,11 @@ linters-settings:
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/migrations
 
+  tagliatelle:
+    case:
+      rules:
+        json: snake
+
 issues:
   exclude-rules:
     - path: _test\.go

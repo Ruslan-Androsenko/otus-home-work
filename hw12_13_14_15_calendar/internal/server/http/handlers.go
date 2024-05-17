@@ -97,11 +97,11 @@ func (s *Server) getEventHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			SendResponse(w, response, getEventMethod)
 			return
-		} else {
-			logg.Errorf("Failed to get event by id: %v, Error: %v", params.ID, err)
-			w.WriteHeader(http.StatusNotFound)
-			return
 		}
+
+		logg.Errorf("Failed to get event by id: %v, Error: %v", params.ID, err)
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	response := DataResponse{"state": "success", "data": event}

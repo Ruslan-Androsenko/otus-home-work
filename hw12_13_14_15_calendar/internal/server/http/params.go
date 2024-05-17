@@ -18,7 +18,7 @@ type Event struct {
 	Date         string        `json:"date"`
 	DateEnd      string        `json:"date_end"`
 	Description  string        `json:"description"`
-	OwnerId      int           `json:"owner_id"`
+	OwnerID      int           `json:"owner_id"`
 	Notification time.Duration `json:"notification"`
 }
 
@@ -34,10 +34,10 @@ func (params EventParams) getDate() (time.Time, error) {
 
 // Получить объект события из переданных параметров запроса.
 func (params EventParams) getEvent() (*storage.Event, error) {
-	eventId := params.ID
+	eventID := params.ID
 
 	if params.Event.ID != "" {
-		eventId = params.Event.ID
+		eventID = params.Event.ID
 	}
 
 	date, errParse := time.ParseInLocation(storage.DateTimeFormat, params.Event.Date, time.Local)
@@ -51,12 +51,12 @@ func (params EventParams) getEvent() (*storage.Event, error) {
 	}
 
 	return &storage.Event{
-		ID:           eventId,
+		ID:           eventID,
 		Title:        params.Event.Title,
 		Date:         date,
 		DateEnd:      dateEnd,
 		Description:  params.Event.Description,
-		OwnerID:      params.Event.OwnerId,
+		OwnerID:      params.Event.OwnerID,
 		Notification: params.Event.Notification,
 	}, nil
 }
