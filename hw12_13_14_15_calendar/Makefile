@@ -29,6 +29,7 @@ build-img:
 run-img: build-img
 	docker run --rm \
 		--name=$(CONTAINER_NAME) \
+		--publish="8070:8070" \
 		--publish="8080:8080" \
 		$(DOCKER_IMG)
 
@@ -58,4 +59,7 @@ install-lint-deps:
 lint: install-lint-deps
 	$(LINTER_BIN) run ./...
 
-.PHONY: build build-database run run-database build-img run-img up down restart version migrate-up migrate-down test lint
+generate:
+	protoc --go_out=./ --go_opt=paths=source_relative --go-grpc_out=./ --go-grpc_opt=paths=source_relative api/proto/calendar.proto
+
+.PHONY: build build-database run run-database build-img run-img up down restart version migrate-up migrate-down test lint generate

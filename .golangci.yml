@@ -8,6 +8,8 @@ linters-settings:
   funlen:
     lines: 150
     statements: 80
+  lll:
+    line-length: 130
 
   depguard:
     rules:
@@ -18,14 +20,25 @@ linters-settings:
           - github.com/BurntSushi/toml
           - github.com/go-sql-driver/mysql
           - github.com/google/uuid
+          - github.com/golang/protobuf/ptypes/duration
+          - github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging
           - github.com/pressly/goose/v3
           - github.com/stretchr/testify/require
           - github.com/stretchr/testify/suite
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/api
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/api/proto
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/grpc
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/http
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/migrations
+
+  tagliatelle:
+    case:
+      rules:
+        json: snake
 
 issues:
   exclude-rules:

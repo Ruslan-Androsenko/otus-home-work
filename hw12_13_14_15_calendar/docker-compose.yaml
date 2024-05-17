@@ -8,4 +8,5 @@ services:
     image: calendar:compose
     container_name: calendar.service
     ports:
+      - "8070:8070"
       - "8080:8080"

@@ -34,7 +34,7 @@ func (s *Storage) Close() error {
 func (s *Storage) hasExistsByID(id string) (bool, error) {
 	var countRows int
 
-	row := s.dbConn.QueryRow("select count(*) as countRows from `?` where id = '?';", storage.EventTableName, id)
+	row := s.dbConn.QueryRow("select count(*) as countRows from `event` where id = ?;", id)
 	if err := row.Scan(&countRows); err != nil {
 		return false, fmt.Errorf("can not get count rows. Error: %w", err)
 	}
@@ -46,9 +46,8 @@ func (s *Storage) hasExistsByID(id string) (bool, error) {
 func (s *Storage) hasExistsByDate(date time.Time) (bool, error) {
 	var countRows int
 
-	row := s.dbConn.QueryRow("select count(*) as countRows from `?` where date = '?';",
-		storage.EventTableName, date.Format(storage.DateTimeFormat))
-
+	dateFormat := date.Format(storage.DateTimeFormat)
+	row := s.dbConn.QueryRow("select count(*) as countRows from `event` where date = ?;", dateFormat)
 	if err := row.Scan(&countRows); err != nil {
 		return false, fmt.Errorf("can not get count rows. Error: %w", err)
 	}
@@ -73,12 +72,11 @@ func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
 		event.Date = time.Now()
 	}
 
-	fields := fmt.Sprintf("'%s', '%s', '%s', '%s', '%s', %d, %d",
-		event.ID, event.Title, event.Date.Format(storage.DateTimeFormat),
-		event.DateEnd.Format(storage.DateTimeFormat),
-		event.Description, event.OwnerID, event.Notification)
+	dateFormat := event.Date.Format(storage.DateTimeFormat)
+	dateEndFormat := event.DateEnd.Format(storage.DateTimeFormat)
 
-	_, err = s.dbConn.ExecContext(ctx, "insert into `?` values(?);", storage.EventTableName, fields)
+	_, err = s.dbConn.ExecContext(ctx, "insert into `event` values (?, ?, ?, ?, ?, ?, ?);",
+		event.ID, event.Title, dateFormat, dateEndFormat, event.Description, event.OwnerID, event.Notification)
 	if err != nil {
 		return fmt.Errorf("can not create event. Error: %w", err)
 	}
@@ -97,13 +95,12 @@ func (s *Storage) UpdateEvent(ctx context.Context, id string, event storage.Even
 		return storage.ErrEventDoesNotExist
 	}
 
-	fields := fmt.Sprintf("title = '%s', date = '%s', date_end = '%s', "+
-		"description = '%s', owner_id = %d, notification = %d",
-		event.Title, event.Date.Format(storage.DateTimeFormat),
-		event.DateEnd.Format(storage.DateTimeFormat),
-		event.Description, event.OwnerID, event.Notification)
+	dateFormat := event.Date.Format(storage.DateTimeFormat)
+	dateEndFormat := event.DateEnd.Format(storage.DateTimeFormat)
 
-	_, err = s.dbConn.ExecContext(ctx, "update `?` set ? where id = '?';", storage.EventTableName, fields, id)
+	_, err = s.dbConn.ExecContext(ctx,
+		"update `event` set title = ?, date = ?, date_end = ?, description = ?, owner_id = ?, notification = ? where id = ?;",
+		event.Title, dateFormat, dateEndFormat, event.Description, event.OwnerID, event.Notification, id)
 	if err != nil {
 		return fmt.Errorf("can not update event, ID: %s. Error: %w", id, err)
 	}
@@ -122,7 +119,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, id string) error {
 		return storage.ErrEventDoesNotExist
 	}
 
-	_, err = s.dbConn.ExecContext(ctx, "delete from `?` where id = '?';", storage.EventTableName, id)
+	_, err = s.dbConn.ExecContext(ctx, "delete from `event` where id = ?;", id)
 	if err != nil {
 		return fmt.Errorf("can not delete event, ID: %s. Error: %w", id, err)
 	}
@@ -133,15 +130,26 @@ func (s *Storage) DeleteEvent(ctx context.Context, id string) error {
 // GetEventByID Получить событие по его ID.
 func (s Storage) GetEventByID(id string) (storage.Event, error) {
 	var (
-		event        storage.Event
-		defaultEvent storage.Event
+		err           error
+		event         storage.Event
+		defaultEvent  storage.Event
+		date, dateEnd string
 	)
 
-	fields := "id, title, date, date_end, description, owner_id, notification"
-	row := s.dbConn.QueryRow("select ? from `?` where id = '?';", fields, storage.EventTableName, id)
-	if err := row.Scan(&event.ID, &event.Title, &event.Date, &event.DateEnd,
+	row := s.dbConn.QueryRow("select id, title, date, date_end, description, owner_id, notification from `event` where id = ?;", id)
+	if err = row.Scan(&event.ID, &event.Title, &date, &dateEnd,
 		&event.Description, &event.OwnerID, &event.Notification); err != nil {
 		return defaultEvent, err
+	}
+
+	event.Date, err = time.ParseInLocation(storage.DateTimeFormat, date, time.Local)
+	if err != nil {
+		s.logger.Errorf("Failed parse field date: %s, Error: %v", date, err)
+	}
+
+	event.DateEnd, err = time.ParseInLocation(storage.DateTimeFormat, dateEnd, time.Local)
+	if err != nil {
+		s.logger.Errorf("Failed parse field date_end: %s, Error: %v", dateEnd, err)
 	}
 
 	if event.ID == "" {
@@ -174,9 +182,13 @@ func (s *Storage) FindEventsByPeriod(date time.Time, period storage.Period) ([]s
 	)
 
 	dateFrom, dateTo := storage.MakeDateRange(date, period)
-	fields := "id, title, date, date_end, description, owner_id, notification"
-	rows, err := s.dbConn.Query("select ? from `?` where date between '?' and '?' order by date asc;",
-		fields, storage.EventTableName, dateFrom.Format(storage.DateTimeFormat), dateTo.Format(storage.DateTimeFormat))
+	dateFromFormat := dateFrom.Format(storage.DateTimeFormat)
+	dateToFormat := dateTo.Format(storage.DateTimeFormat)
+
+	rows, err := s.dbConn.Query(`
+		select id, title, date, date_end, description, owner_id, notification 
+		from event where date between ? and ? order by date asc;
+		`, dateFromFormat, dateToFormat)
 	if err != nil {
 		return nil, err
 	}
