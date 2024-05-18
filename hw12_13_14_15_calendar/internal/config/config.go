@@ -1,10 +1,12 @@
-package main
+package config
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/BurntSushi/toml"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app"
+	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server"
 	memorystorage "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage/sql"
@@ -29,7 +31,9 @@ type LoggerConf struct {
 	Level string
 }
 
-func NewConfig() Config {
+var dbConn *sql.DB
+
+func NewConfig(configFile string) Config {
 	var config Config
 
 	if _, err := toml.DecodeFile(configFile, &config); err != nil {
@@ -40,14 +44,14 @@ func NewConfig() Config {
 }
 
 // GetStorage Получить объект хранилища.
-func (config Config) GetStorage() app.Storage {
+func (config Config) GetStorage(logg *logger.Logger) app.Storage {
 	var storage app.Storage
 
 	switch config.Storage.Type {
 	case StorageTypeMemory:
 		storage = memorystorage.New()
 	case StorageTypeDataBase:
-		dbConn = config.Storage.NewDBConnection()
+		dbConn = config.Storage.NewDBConnection(logg)
 		storage = sqlstorage.New(dbConn, logg)
 	default:
 		logg.Fatal("Storage type not found")

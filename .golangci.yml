@@ -28,6 +28,7 @@ linters-settings:
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/api
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/api/proto
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app
+          - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/config
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server
           - github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server/grpc

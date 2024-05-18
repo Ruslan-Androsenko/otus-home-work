@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"os/signal"
 	"syscall"
@@ -10,12 +9,12 @@ import (
 
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/api"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app"
+	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/config"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger"
 )
 
 var (
 	configFile string
-	dbConn     *sql.DB
 	logg       *logger.Logger
 )
 
@@ -31,15 +30,15 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg = logger.New(config.Logger.Level)
-	storage := config.GetStorage()
+	conf := config.NewConfig(configFile)
+	logg = logger.New(conf.Logger.Level)
+	storage := conf.GetStorage(logg)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
-	if config.Storage.Type == StorageTypeDataBase {
+	if conf.Storage.Type == config.StorageTypeDataBase {
 		defer func() {
 			err := storage.Close()
 			if err != nil {
@@ -53,16 +52,16 @@ func main() {
 		}
 
 		if hasMigrationUpCommand() {
-			migrationUp(ctx)
+			config.MigrationUp(ctx, logg)
 			return
 		} else if hasMigrationDownCommand() {
-			migrationDown(ctx)
+			config.MigrationDown(ctx, logg)
 			return
 		}
 	}
 
 	calendar := app.New(logg, storage)
-	server := api.NewServer(config.Server, calendar, logg)
+	server := api.NewServer(conf.Server, calendar, logg)
 
 	go func() {
 		<-ctx.Done()
