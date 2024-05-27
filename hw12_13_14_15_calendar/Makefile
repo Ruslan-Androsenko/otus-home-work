@@ -1,5 +1,7 @@
 BIN := "./bin/calendar"
 BIN_DATABASE := "./bin/calendar-database"
+BIN_SCHEDULER := "./bin/calendar-scheduler"
+BIN_SENDER := "./bin/calendar-sender"
 CONTAINER_NAME="calendar"
 DOCKER_IMG="calendar:develop"
 LINTER_PATH=/tmp/bin
@@ -13,6 +15,8 @@ build:
 
 build-database:
 	go build -v -o $(BIN_DATABASE) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(BIN_SCHEDULER) -ldflags "$(LDFLAGS)" ./cmd/scheduler
+	go build -v -o $(BIN_SENDER) -ldflags "$(LDFLAGS)" ./cmd/sender
 
 run: build
 	$(BIN) -config ./configs/config-default.toml

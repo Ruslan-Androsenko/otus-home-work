@@ -40,14 +40,12 @@ func main() {
 
 	if conf.Storage.Type == config.StorageTypeDataBase {
 		defer func() {
-			err := storage.Close()
-			if err != nil {
+			if err := storage.Close(); err != nil {
 				logg.Fatalf("Can't close database connection. Error: %v", err)
 			}
 		}()
 
-		err := storage.Connect(ctx)
-		if err != nil {
+		if err := storage.Connect(ctx); err != nil {
 			logg.Fatalf("Can't connect to database. Error: %v", err)
 		}
 

@@ -7,6 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/app"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger"
+	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/queue/rabbitmq"
 	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/server"
 	memorystorage "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/storage/sql"
@@ -20,6 +21,7 @@ type Config struct {
 	Server  server.Conf
 	Storage StorageConf
 	Logger  LoggerConf
+	Queue   QueueConf
 }
 
 type StorageConf struct {
@@ -58,4 +60,12 @@ func (config Config) GetStorage(logg *logger.Logger) app.Storage {
 	}
 
 	return storage
+}
+
+// GetQueue Получить объект очереди.
+func (config Config) GetQueue() Queue {
+	queueConf := config.Queue
+	dataSource := queueConf.getDataSource()
+
+	return rabbitmq.New(dataSource, queueConf.Exchange)
 }

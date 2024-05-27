@@ -1,0 +1,18 @@
+[queue]
+queue_host = "localhost"
+queue_port = 5672
+queue_user = "guest"
+queue_pass = "guest"
+
+[queue.exchange]
+exchange_name = "calendar-exchange"
+exchange_type = "direct"
+routing_key = "calendar-key"
+queue_name = "calendar-queue"
+consumer_tag = "calendar-tag"
+
+[logger]
+level = "INFO"
+
+# Valid values
+# [FATAL, ERROR, WARN, INFO, DEBUG]
