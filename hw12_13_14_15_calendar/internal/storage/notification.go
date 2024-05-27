@@ -6,5 +6,5 @@ type Notification struct {
 	ID      string
 	Title   string
 	Date    time.Time
-	OwnerID string
+	OwnerID int
 }

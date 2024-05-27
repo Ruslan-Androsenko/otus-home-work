@@ -39,6 +39,8 @@ type Storage interface {
 	GetEventsOfDay(date time.Time) ([]storage.Event, error)
 	GetEventsOfWeek(date time.Time) ([]storage.Event, error)
 	GetEventsOfMonth(date time.Time) ([]storage.Event, error)
+
+	GetEventsNotifications() ([]storage.Notification, error)
 }
 
 func New(logger Logger, storage Storage) *App {
