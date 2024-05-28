@@ -57,8 +57,22 @@ migrate-down: build-database
 test:
 	go test -race -v -count 100 -timeout=2m ./internal/...
 
+install-go:
+	wget -c https://go.dev/dl/go1.22.3.linux-amd64.tar.gz \
+	&& sudo tar -xvf go1.22.3.linux-amd64.tar.gz -C /usr/local \
+	&& rm go1.22.3.linux-amd64.tar.gz
+
+go-version:
+	go version
+
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LINTER_PATH) v1.55.2
+
+lint-version: install-lint-deps
+	$(LINTER_BIN) version
+
+lint-fix: install-lint-deps
+	$(LINTER_BIN) run --fix ./...
 
 lint: install-lint-deps
 	$(LINTER_BIN) run ./...
@@ -66,4 +80,4 @@ lint: install-lint-deps
 generate:
 	protoc --go_out=./ --go_opt=paths=source_relative --go-grpc_out=./ --go-grpc_opt=paths=source_relative api/proto/calendar.proto
 
-.PHONY: build build-database run run-database build-img run-img up down restart version migrate-up migrate-down test lint generate
+.PHONY: build build-database run run-database build-img run-img up down restart version migrate-up migrate-down test install-go go-version lint-version lint-fix lint generate

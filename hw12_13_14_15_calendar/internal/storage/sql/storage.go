@@ -253,7 +253,7 @@ func (s *Storage) GetEventsNotifications() ([]storage.Notification, error) {
 		currentDate: 2024-04-11 09:10:45
 	*/
 
-	//durationTest := time.Minute * 10
+	// durationTest := time.Minute * 10
 
 	for rows.Next() {
 		if err = rows.Scan(&event.ID, &event.Title, &eventDate, &event.OwnerID, &event.Notification); err != nil {
@@ -266,15 +266,15 @@ func (s *Storage) GetEventsNotifications() ([]storage.Notification, error) {
 		}
 
 		// Проверяем необходимо ли создать уведомление о событии
-		//notificationTime := event.Date.Sub(currentDate)
-		//if notificationTime == event.Notification {
+		// notificationTime := event.Date.Sub(currentDate)
+		// if notificationTime == event.Notification {
 		notifications = append(notifications, storage.Notification{
 			ID:      event.ID,
 			Title:   event.Title,
 			Date:    event.Date,
 			OwnerID: event.OwnerID,
 		})
-		//}
+		// }
 	}
 
 	return notifications, nil
