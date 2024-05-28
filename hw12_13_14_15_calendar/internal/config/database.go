@@ -1,9 +1,11 @@
-package main
+//nolint:revive
+package config
 
 import (
 	"database/sql"
 	"fmt"
 
+	"github.com/Ruslan-Androsenko/otus-home-work/hw12_13_14_15_calendar/internal/logger"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pressly/goose/v3"
 )
@@ -17,7 +19,7 @@ type DataBaseConf struct {
 }
 
 // NewDBConnection подключение к БД сервиса.
-func (storage StorageConf) NewDBConnection() *sql.DB {
+func (storage StorageConf) NewDBConnection(logg *logger.Logger) *sql.DB {
 	dataSource := storage.DataBase.getDataSource()
 	db, err := sql.Open("mysql", dataSource)
 	if err != nil {

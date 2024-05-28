@@ -141,3 +141,7 @@ func (s *Storage) FindEventsByPeriod(date time.Time, period storage.Period) ([]s
 	eventsList.SortByDateAsc()
 	return eventsList.List, nil
 }
+
+func (s *Storage) GetEventsNotifications() ([]storage.Notification, error) {
+	return nil, nil
+}

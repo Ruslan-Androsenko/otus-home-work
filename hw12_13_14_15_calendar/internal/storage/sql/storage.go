@@ -222,3 +222,60 @@ func (s *Storage) FindEventsByPeriod(date time.Time, period storage.Period) ([]s
 
 	return events, nil
 }
+
+// GetEventsNotifications Получить список уведомлений для событий календаря.
+func (s *Storage) GetEventsNotifications() ([]storage.Notification, error) {
+	var (
+		notifications     []storage.Notification
+		event             storage.Event
+		eventDate         string
+		currentDate       = time.Now()
+		currentDateFormat = currentDate.Format(storage.DateTimeFormat)
+	)
+
+	rows, err := s.dbConn.Query(`
+		select id, title, date, owner_id, notification 
+		from event where notification > 0 and date >= ? order by date asc;
+		`, currentDateFormat)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err = rows.Close(); err != nil {
+			s.logger.Errorf("Can not close of rows. Error: %v", err)
+		}
+	}()
+
+	/*
+		eventDate: 2024-04-11 09:20:45
+		eventNotification: 10m
+		currentDate: 2024-04-11 09:10:45
+	*/
+
+	// durationTest := time.Minute * 10
+
+	for rows.Next() {
+		if err = rows.Scan(&event.ID, &event.Title, &eventDate, &event.OwnerID, &event.Notification); err != nil {
+			return nil, err
+		}
+
+		event.Date, err = time.ParseInLocation(storage.DateTimeFormat, eventDate, time.Local)
+		if err != nil {
+			return nil, err
+		}
+
+		// Проверяем необходимо ли создать уведомление о событии
+		// notificationTime := event.Date.Sub(currentDate)
+		// if notificationTime == event.Notification {
+		notifications = append(notifications, storage.Notification{
+			ID:      event.ID,
+			Title:   event.Title,
+			Date:    event.Date,
+			OwnerID: event.OwnerID,
+		})
+		// }
+	}
+
+	return notifications, nil
+}
